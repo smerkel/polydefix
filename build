@@ -1,0 +1,45 @@
+
+; RESET IDL Session
+.RESET_SESSION
+
+; Compile project files
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/mpfit.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/mpfitfun.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/func.gui.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/func.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/beamCenterWindow.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/fitOffsetWindow.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/diffIntensityWindow.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/materialObject.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/materialWindow.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/experimentObject.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/experimentWindow.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/fdecomp.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/fitLatticeStrainsWindow.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/fitPatternObject.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/fitPressureWindow.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/fitStressWindow.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/fitSubPatternObject.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/fitUnitCellWindow.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/gettok.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/latticeStrainMultiplePeaksCenter.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/latticeStrainMultiplePeaksOffset.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/latticestrainMultiplePeaksNoCorr.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/latticestrain.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/latticestrainObject.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/line.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/plotIntensities.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/plotTestLatticeStrains.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/plotinteractive1D.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/showprogress.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/testLatticeStrainsWindow.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/unitCellObject.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/diffIntensityWindow2.pro'
+.COMPILE '/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/polydefix.pro'
+
+; Resolve all routines
+RESOLVE_ALL, /CONTINUE_ON_ERROR
+
+; Create the project save file
+SAVE, /ROUTINES, FILENAME='/home/smerkel/Programmes/IDL/StressStrain/StressStrain-v0.3/polydefix_0p3.sav', /VERBOSE
+
