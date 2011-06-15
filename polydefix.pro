@@ -1,3 +1,3 @@
-pro polydefix_0p3
+pro polydefix
 	experimentWindow
 end
