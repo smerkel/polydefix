@@ -31,6 +31,7 @@ case self.symmetry of
 	'cubic': self.cell = PTR_NEW(fltarr(1,2))
 	'hexa':  self.cell = PTR_NEW(fltarr(2,2))
 	'ortho':  self.cell = PTR_NEW(fltarr(3,2))
+  'mono':  self.cell = PTR_NEW(fltarr(4,2))
 	else: self.cell = PTR_NEW(fltarr(1,1))
 endcase
 return, 1
@@ -46,6 +47,22 @@ if (self.symmetry eq 'hexa') then begin
 	(*self.cell)[0,1] = fit[1]
 	(*self.cell)[1,0] = fit[2]
 	(*self.cell)[1,1] = fit[3]
+endif else if (self.symmetry eq 'ortho') then begin
+  (*self.cell)[0,0] = fit[0]
+  (*self.cell)[0,1] = fit[1]
+  (*self.cell)[1,0] = fit[2]
+  (*self.cell)[1,1] = fit[3]
+  (*self.cell)[2,0] = fit[4]
+  (*self.cell)[2,1] = fit[5]
+endif else if (self.symmetry eq 'mono') then begin
+  (*self.cell)[0,0] = fit[0]
+  (*self.cell)[0,1] = fit[1]
+  (*self.cell)[1,0] = fit[2]
+  (*self.cell)[1,1] = fit[3]
+  (*self.cell)[2,0] = fit[4]
+  (*self.cell)[2,1] = fit[5]
+  (*self.cell)[3,0] = fit[6]
+  (*self.cell)[3,1] = fit[7]
 endif else if (self.symmetry eq 'cubic') then begin
 	(*self.cell)[0,0] = fit[0]
 	(*self.cell)[0,1] = fit[1]
@@ -67,6 +84,19 @@ if (self.symmetry eq 'hexa') then begin
 	dv = sqrt( (2.*(*self.cell)[0,0]* (*self.cell)[0,1]*(*self.cell)[1,0]*sin(!pi/3.))^2 + $
 		((*self.cell)[0,0]*(*self.cell)[0,0]*(*self.cell)[1,1]*sin(!pi/3.))^2 )
 	return, [v,dv]
+endif else if (self.symmetry eq 'ortho') then begin
+  v = (*self.cell)[0,0]*(*self.cell)[1,0]*(*self.cell)[2,0]
+  dv = sqrt( ((*self.cell)[0,0]*(*self.cell)[1,0]*(*self.cell)[2,1])^2 + $
+    ((*self.cell)[1,0]*(*self.cell)[2,0]*(*self.cell)[0,1])^2 + $
+    ((*self.cell)[0,0]*(*self.cell)[2,0]*(*self.cell)[1,1])^2 )
+  return, [v,dv]
+endif else if (self.symmetry eq 'mono') then begin
+  v = (*self.cell)[0,0]*(*self.cell)[1,0]*(*self.cell)[2,0]
+  dv = sqrt( ((*self.cell)[0,0]*(*self.cell)[1,0]*sin((*self.cell)[3,0])*(*self.cell)[2,1])^2 + $
+    ((*self.cell)[1,0]*(*self.cell)[2,0]*sin((*self.cell)[3,0])*(*self.cell)[0,1])^2 + $
+    ((*self.cell)[0,0]*(*self.cell)[2,0]*sin((*self.cell)[3,0])*(*self.cell)[1,1])^2 + $
+    ((*self.cell)[0,0]*(*self.cell)[1,0]*(*self.cell)[2,0]*cos((*self.cell)[3,0])*(*self.cell)[3,1])^2  )
+  return, [v,dv]
 endif else if (self.symmetry eq 'cubic') then begin
 	v = (*self.cell)[0,0]*(*self.cell)[0,0]*(*self.cell)[0,0]
 	dv = 3.*(*self.cell)[0,0]*(*self.cell)[0,0]*(*self.cell)[0,1]
@@ -79,7 +109,13 @@ function unitCellObject::getVolumeNoError
 if (self.symmetry eq 'hexa') then begin
 	v = (*self.cell)[0,0]*(*self.cell)[0,0]*(*self.cell)[1,0]*sin(!pi/3.)
 	return, v
-endif else if (self.symmetry eq 'cubic') then begin
+endif else if (self.symmetry eq 'ortho') then begin
+  v = (*self.cell)[0,0]*(*self.cell)[1,0]*(*self.cell)[2,0]
+  return, v
+endif  else if (self.symmetry eq 'mono') then begin
+  v = (*self.cell)[0,0]*(*self.cell)[1,0]*(*self.cell)[2,0]*sin((*self.cell)[3,0])
+  return, v
+endif else  if (self.symmetry eq 'cubic') then begin
 	v = (*self.cell)[0,0]*(*self.cell)[0,0]*(*self.cell)[0,0]
 	return, v
 endif
@@ -113,7 +149,16 @@ case self.symmetry of
 			else: return, 0
 		endcase
 		end
-	else: return, '0
+  'mono':  begin
+    case i of
+      0: return, (*self.cell)[0,0]
+      1: return, (*self.cell)[1,0]
+      2: return, (*self.cell)[2,0]
+      3: return, (*self.cell)[3,0]
+      else: return, 0
+    endcase
+    end
+	else: return, 0
 endcase
 return, 0
 end
@@ -144,7 +189,16 @@ case self.symmetry of
 			else: return, 0
 		endcase
 		end
-	else: return, '0
+  'mono':  begin
+    case i of
+      0: return, (*self.cell)[0,1]
+      1: return, (*self.cell)[1,1]
+      2: return, (*self.cell)[2,1]
+      3: return, (*self.cell)[3,1]
+      else: return, 0
+    endcase
+    end
+	else: return, 0
 endcase
 return, 0
 end
@@ -153,7 +207,13 @@ function unitCellObject::getDHKL, h, k, l
 if (self.symmetry eq 'hexa') then begin
 	tmp = 4.*(h*h+h*k+k*k)/(3.*(*self.cell)[0,0]*(*self.cell)[0,0])+l*l/((*self.cell)[1,0]*(*self.cell)[1,0])
 	return, 1./sqrt(tmp)
-endif else if (self.symmetry eq 'cubic') then begin
+endif else if (self.symmetry eq 'mono') then begin
+  tmp = h*h/((*self.cell)[0,0]*sin((*self.cell)[3,0]))^2 + k*k/((*self.cell)[1,0])^2 + l*l/((*self.cell)[2,0]*sin((*self.cell)[3,0]))^2 - 2.*h*l*cos((*self.cell)[3,0])/((*self.cell)[0,0]*(*self.cell)[2,0]*(sin((*self.cell)[3,0]))^2)
+  return, 1./sqrt(tmp)
+endif else if (self.symmetry eq 'ortho') then begin
+  tmp = h*h/((*self.cell)[0,0])^2 + k*k/((*self.cell)[1,0])^2 + l*l/((*self.cell)[2,0])^2 
+  return, 1./sqrt(tmp)
+endif  else if (self.symmetry eq 'cubic') then begin
 	tmp = (h*h+k*k+l*l)/((*self.cell)[0,0]*(*self.cell)[0,0])
 	return, 1./sqrt(tmp)
 endif
@@ -178,6 +238,15 @@ if (self.symmetry eq 'hexa') then $
 	txt += "a = " + fltformatA((*self.cell)[0,0]) + " (+/-) "+ fltformatA((*self.cell)[0,1]) + "\n" +$
 		"c = " + fltformatA((*self.cell)[1,0]) + " (+/-) "+ fltformatA((*self.cell)[1,1]) + "\n" + $
 		"c/a = " +  fltformatA((*self.cell)[1,0]/(*self.cell)[0,0]) + "\n"
+if (self.symmetry eq 'ortho') then $
+  txt += "a = " + fltformatA((*self.cell)[0,0]) + " (+/-) " + fltformatA((*self.cell)[0,1]) + "\n" +$
+    "b = " + fltformatA((*self.cell)[1,0]) + " (+/-) " + fltformatA((*self.cell)[1,1]) + "\n" + $
+    "c = " +  fltformatA((*self.cell)[2,0]) + " (+/-) " + fltformatA((*self.cell)[2,1]) +  "\n"
+if (self.symmetry eq 'mono') then $
+  txt += "a = " + fltformatA((*self.cell)[0,0]) + " (+/-) " + fltformatA((*self.cell)[0,1]) + "\n" +$
+    "b = " + fltformatA((*self.cell)[1,0]) + " (+/-) " + fltformatA((*self.cell)[1,1]) + "\n" + $
+    "c = " +  fltformatA((*self.cell)[2,0]) + " (+/-) " + fltformatA((*self.cell)[2,1]) +  "\n" + $
+    "beta = " +  fltformatA((*self.cell)[3,0]*180./!PI) + " (+/-) " + fltformatA((*self.cell)[3,1]*180./!PI) +  "\n"
 if (self.symmetry eq 'cubic') then $
 	txt += "a = " + fltformatA((*self.cell)[0,0]) + " (+/-) "+ fltformatA((*self.cell)[0,1]) + "\n"
 txt += self.details
@@ -187,11 +256,20 @@ end
 function unitCellObject::summaryPressure
 txt = self.name + "\n"
 if (self.symmetry eq 'hexa') then $
-	txt += "a = " + fltformatA((*self.cell)[0,0]) + " (+/-) "+ fltformatA((*self.cell)[0,1]) + "\n" +$
-		"c = " + fltformatA((*self.cell)[1,0]) + " (+/-) "+ fltformatA((*self.cell)[1,1]) + "\n" + $
-		"c/a = " +  fltformatA((*self.cell)[1,0]/(*self.cell)[0,0]) + "\n"
+  txt += "a = " + fltformatA((*self.cell)[0,0]) + " (+/-) "+ fltformatA((*self.cell)[0,1]) + "\n" +$
+    "c = " + fltformatA((*self.cell)[1,0]) + " (+/-) "+ fltformatA((*self.cell)[1,1]) + "\n" + $
+    "c/a = " +  fltformatA((*self.cell)[1,0]/(*self.cell)[0,0]) + "\n"
+if (self.symmetry eq 'ortho') then $
+  txt += "a = " + fltformatA((*self.cell)[0,0]) + " (+/-) " + fltformatA((*self.cell)[0,1]) + "\n" +$
+    "b = " + fltformatA((*self.cell)[1,0]) + " (+/-) " + fltformatA((*self.cell)[1,1]) + "\n" + $
+    "c = " +  fltformatA((*self.cell)[2,0]) + " (+/-) " + fltformatA((*self.cell)[2,1]) +  "\n"
+if (self.symmetry eq 'mono') then $
+  txt += "a = " + fltformatA((*self.cell)[0,0]) + " (+/-) " + fltformatA((*self.cell)[0,1]) + "\n" +$
+    "b = " + fltformatA((*self.cell)[1,0]) + " (+/-) " + fltformatA((*self.cell)[1,1]) + "\n" + $
+    "c = " +  fltformatA((*self.cell)[2,0]) + " (+/-) " + fltformatA((*self.cell)[2,1]) +  "\n" + $
+    "beta = " +  fltformatA((*self.cell)[3,0]*180./!PI) + " (+/-) " + fltformatA((*self.cell)[3,1]*180./!PI) +  "\n"
 if (self.symmetry eq 'cubic') then $
-	txt += "a = " + fltformatA((*self.cell)[0,0]) + " (+/-) "+ fltformatA((*self.cell)[0,1]) + "\n"
+  txt += "a = " + fltformatA((*self.cell)[0,0]) + " (+/-) "+ fltformatA((*self.cell)[0,1]) + "\n"
 txt += "P = " + fltformatA(self.P) + " (+/-) "+ fltformatA(self.dp) + "\n" 
 return, txt
 end
@@ -202,6 +280,11 @@ V = self->getVolume()
 txt = ""
 if (self.symmetry eq 'hexa') then $
 	txt += fltformatA((*self.cell)[0,0]) + STRING(9B) + fltformatA((*self.cell)[0,1]) + STRING(9B) + fltformatA((*self.cell)[1,0]) +  STRING(9B)+ fltformatA((*self.cell)[1,1]) + STRING(9B) + fltformatA(V[0]) + STRING(9B) + fltformatA(V[1]) + STRING(9B) +  fltformatA(self.P) + STRING(9B) + fltformatA(self.dp)
+if (self.symmetry eq 'ortho') then $
+  txt += fltformatA((*self.cell)[0,0]) + STRING(9B) + fltformatA((*self.cell)[0,1]) + STRING(9B) + fltformatA((*self.cell)[1,0]) +  STRING(9B)+ fltformatA((*self.cell)[1,1]) + STRING(9B)+ fltformatA((*self.cell)[2,0]) +  STRING(9B)+ fltformatA((*self.cell)[2,1]) + STRING(9B) + fltformatA(V[0]) + STRING(9B) + fltformatA(V[1]) + STRING(9B) +  fltformatA(self.P) + STRING(9B) + fltformatA(self.dp)
+if (self.symmetry eq 'mono') then $
+   txt += fltformatA((*self.cell)[0,0]) + STRING(9B) + fltformatA((*self.cell)[0,1]) + STRING(9B) + fltformatA((*self.cell)[1,0]) +  STRING(9B)+ fltformatA((*self.cell)[1,1]) + STRING(9B)+ fltformatA((*self.cell)[2,0]) +  STRING(9B)+ fltformatA((*self.cell)[2,1]) +  STRING(9B)+ fltformatA((*self.cell)[3,0]*180./!PI) +  STRING(9B)+ fltformatA((*self.cell)[3,1]*180./!PI) + $ 
+    STRING(9B) + fltformatA(V[0]) + STRING(9B) + fltformatA(V[1]) + STRING(9B) +  fltformatA(self.P) + STRING(9B) + fltformatA(self.dp) 
 if (self.symmetry eq 'cubic') then $
 	txt += fltformatA((*self.cell)[0,0]) + STRING(9B) + fltformatA((*self.cell)[0,1]) + STRING(9B) + fltformatA(V[0]) + STRING(9B) + fltformatA(V[1]) + STRING(9B) +  fltformatA(self.P) + STRING(9B) + fltformatA(self.dp)
 return, txt

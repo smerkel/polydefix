@@ -25,6 +25,8 @@
 ; - 0 cubic
 ; - 1 hexa for hexagonal
 ; - 2 otho for orthorhombic
+; - 3 trig for trigonal (not implemented)
+; - 4 mono for monoclinic
 ; Equation of state (Birch-Mur...)
 ; - V0: unit cell volume at zero pressure
 ; - K0: bulk modulus at zero pressure
@@ -79,6 +81,52 @@ self.iG[0] = g0
 self.iG[1] = g1
 self.iG[2] = g2
 self.elasticmodel=0
+end
+
+
+pro materialObject::setAnisPropOrtho, c11, c22, c33,  c12,  c13, c23,  c44, c55, c66, dc11, dc22, dc33,  dc12,  dc13, dc23,  dc44, dc55, dc66, ddc11, ddc22, ddc33,  ddc12,  ddc13, ddc23,  ddc44, ddc55, ddc66
+for i=0,6 do begin
+  for j=0,6 do begin
+    for k=0,2 do begin
+      self.Cij[i,j,k] = 0.0
+    endfor
+  endfor
+endfor
+self.Cij[1,1,0] = c11
+self.Cij[2,2,0] = c22
+self.Cij[3,3,0] = c33
+self.Cij[1,2,0] = c12
+self.Cij[1,3,0] = c13
+self.Cij[2,3,0] = c23
+self.Cij[4,4,0] = c44
+self.Cij[5,5,0] = c55
+self.Cij[6,6,0] = c66
+self.Cij[1,1,1] = dc11
+self.Cij[2,2,1] = dc22
+self.Cij[3,3,1] = dc33
+self.Cij[1,2,1] = dc12
+self.Cij[1,3,1] = dc13
+self.Cij[2,3,1] = dc23
+self.Cij[4,4,1] = dc44
+self.Cij[5,5,1] = dc55
+self.Cij[6,6,1] = dc66
+self.Cij[1,1,2] = ddc11
+self.Cij[2,2,2] = ddc22
+self.Cij[3,3,2] = ddc33
+self.Cij[1,2,2] = ddc12
+self.Cij[1,3,2] = ddc13
+self.Cij[2,3,2] = ddc23
+self.Cij[4,4,2] = ddc44
+self.Cij[5,5,2] = ddc55
+self.Cij[6,6,2] = ddc66
+for i=1,6 do begin
+  for j=1,i-1 do begin
+    for k=0,2 do begin
+      self.Cij[i,j,k] = self.Cij[j,i,k] 
+    endfor
+  endfor
+endfor
+self.elasticmodel=1
 end
 
 pro materialObject::setAnisPropHexa, c11,  c33,  c12,  c13,  c44,  dc11,  dc33,  dc12,  dc13,  dc44,   ddc11,  ddc33,  ddc12,  ddc13,  ddc44
@@ -179,6 +227,7 @@ case code  OF
 	0: self.symmetry = 'cubic'
 	1: self.symmetry = 'hexa'
 	2: self.symmetry = 'ortho'
+  4: self.symmetry = 'mono'
 	else:
 endcase
 end
@@ -202,6 +251,7 @@ end
 function materialObject::refineUnitCell, latticestrain
 cell = OBJ_NEW('unitCellObject', self.symmetry, latticestrain->getName())
 if (latticestrain->getSet() eq 1) then begin
+  ; Hexagonal
 	if(self.symmetry eq 'hexa') then begin 
 		nuse = latticestrain->getnuse()
 		d = latticestrain->getd()
@@ -221,7 +271,48 @@ if (latticestrain->getSet() eq 1) then begin
 			txt += "\t" + STRTRIM(STRING(h[i],/PRINT),2)+ STRTRIM(STRING(k[i],/PRINT),2)+ STRTRIM(STRING(l[i],/PRINT),2) + ": " + fltformatA(d[i]) + " (+/-) " + fltformatA(dd[i]) + "     " + fltformatA(dfit[i]) + "    " + fltformatA(d[i]-dfit[i]) + "\n" 
 		endfor
 		cell->setDetails, txt
-	endif else if (self.symmetry eq 'cubic') then begin 
+  ; Orthorhombic
+	endif else if(self.symmetry eq 'ortho') then begin 
+    nuse = latticestrain->getnuse()
+    d = latticestrain->getd()
+    dd = latticestrain->getdd()
+    h = latticestrain->geth()
+    k = latticestrain->getk()
+    l = latticestrain->getl()
+    x = replicate({plane, h:0, k:0, l:0},nuse)
+    for i=0,nuse-1 do begin
+      x[i] = {plane, h[i], k[i], l[i]}
+    endfor
+    a = [3., 3., 3.]
+    fit = MPFITFUN('dhklortho', x, d, dd, a, perror=perror, YFIT=dfit, /quiet)
+    cell->setFit, [fit[0], perror[0], fit[1], perror[1], fit[2], perror[2]]
+    txt = "\thkl    dm       dc      diff\n"
+    for i=0,nuse-1 do begin
+      txt += "\t" + STRTRIM(STRING(h[i],/PRINT),2)+ STRTRIM(STRING(k[i],/PRINT),2)+ STRTRIM(STRING(l[i],/PRINT),2) + ": " + fltformatA(d[i]) + " (+/-) " + fltformatA(dd[i]) + "     " + fltformatA(dfit[i]) + "    " + fltformatA(d[i]-dfit[i]) + "\n" 
+    endfor
+    cell->setDetails, txt
+  ; Monoclinic
+  endif else if(self.symmetry eq 'mono') then begin 
+    nuse = latticestrain->getnuse()
+    d = latticestrain->getd()
+    dd = latticestrain->getdd()
+    h = latticestrain->geth()
+    k = latticestrain->getk()
+    l = latticestrain->getl()
+    x = replicate({plane, h:0, k:0, l:0},nuse)
+    for i=0,nuse-1 do begin
+      x[i] = {plane, h[i], k[i], l[i]}
+    endfor
+    a = [1., 1., 1., 1.75]
+    fit = MPFITFUN('dhklmono', x, d, dd, a, perror=perror, YFIT=dfit, /quiet)
+    cell->setFit, [fit[0], perror[0], fit[1], perror[1], fit[2], perror[2], fit[3], perror[3]]
+    txt = "\thkl    dm       dc      diff\n"
+    for i=0,nuse-1 do begin
+      txt += "\t" + STRTRIM(STRING(h[i],/PRINT),2)+ STRTRIM(STRING(k[i],/PRINT),2)+ STRTRIM(STRING(l[i],/PRINT),2) + ": " + fltformatA(d[i]) + " (+/-) " + fltformatA(dd[i]) + "     " + fltformatA(dfit[i]) + "    " + fltformatA(d[i]-dfit[i]) + "\n" 
+    endfor
+    cell->setDetails, txt
+  ; cubic
+  endif else if (self.symmetry eq 'cubic') then begin 
 		nuse = latticestrain->getnuse()
 		d = latticestrain->getd()
 		dd = latticestrain->getdd()
@@ -286,6 +377,7 @@ case code  OF
 	0: return, 'cubic'
 	1: return, 'hexa'
 	2: return, 'ortho'
+  4: return, 'mono'
 	else: return, 10
 endcase
 return, 10
@@ -296,6 +388,7 @@ case self.symmetry of
 	'cubic': return, 0
 	'hexa': return, 1
 	'ortho': return, 2
+  'mono': return, 4
 	else: return, 10
 endcase
 return, 10
@@ -346,7 +439,17 @@ endif else begin
 		str += "\tC12 = " + STRTRIM(STRING(self.Cij[1,2,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,2,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,2,2],/PRINT),2) + "*P*P\n"
 		str += "\tC13 = " + STRTRIM(STRING(self.Cij[1,3,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,3,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,3,2],/PRINT),2) + "*P*P\n"
 		str += "\tC44 = " + STRTRIM(STRING(self.Cij[4,4,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[4,4,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[4,4,2],/PRINT),2) + "*P*P\n"
-	endif else if (self.symmetry eq 'cubic') then begin
+	endif else if (self.symmetry eq 'ortho') then begin
+    str += "\tC11 = " + STRTRIM(STRING(self.Cij[1,1,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,1,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,1,2],/PRINT),2) + "*P*P\n"
+    str += "\tC22 = " + STRTRIM(STRING(self.Cij[2,2,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[2,2,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[2,2,2],/PRINT),2) + "*P*P\n"
+    str += "\tC33 = " + STRTRIM(STRING(self.Cij[3,3,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[3,3,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[3,3,2],/PRINT),2) + "*P*P\n"
+    str += "\tC12 = " + STRTRIM(STRING(self.Cij[1,2,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,2,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,2,2],/PRINT),2) + "*P*P\n"
+    str += "\tC13 = " + STRTRIM(STRING(self.Cij[1,3,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,3,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,3,2],/PRINT),2) + "*P*P\n"
+    str += "\tC23 = " + STRTRIM(STRING(self.Cij[2,3,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[2,3,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[2,3,2],/PRINT),2) + "*P*P\n"
+    str += "\tC44 = " + STRTRIM(STRING(self.Cij[4,4,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[4,4,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[4,4,2],/PRINT),2) + "*P*P\n"
+    str += "\tC55 = " + STRTRIM(STRING(self.Cij[5,5,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[5,5,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[5,5,2],/PRINT),2) + "*P*P\n"
+    str += "\tC66 = " + STRTRIM(STRING(self.Cij[6,6,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[6,6,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[6,6,2],/PRINT),2) + "*P*P\n"
+  endif else if (self.symmetry eq 'cubic') then begin
 		str += "\tC11 = " + STRTRIM(STRING(self.Cij[1,1,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,1,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,1,2],/PRINT),2) + "*P*P\n"
 		str += "\tC12 = " + STRTRIM(STRING(self.Cij[1,2,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,2,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,2,2],/PRINT),2) + "*P*P\n"
 		str += "\tC44 = " + STRTRIM(STRING(self.Cij[4,4,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[4,4,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[4,4,2],/PRINT),2) + "*P*P\n"
@@ -359,7 +462,8 @@ function materialObject::labelPCSV
 case self.symmetry of
 	'cubic': return, "#" + STRING(9B) + "a"  + STRING(9B) + "da" + STRING(9B)+ "V" + STRING(9B) + "dV"  + STRING(9B) + "P" + STRING(9B) + "dP"
 	'hexa': return, "#" + STRING(9B) + "a" + STRING(9B) + "da" + STRING(9B) + "c" + STRING(9B) + "dc"  + STRING(9B) + "V" + STRING(9B) + "dV" + STRING(9B) + "P" + STRING(9B) + "dP"
-	'ortho': return, "#" + STRING(9B) + "a" + STRING(9B) + "da" + STRING(9B) + "b" + STRING(9B) + "db" + STRING(9B) + "c" + STRING(9B) + "dc" + STRING(9B) + "V" + STRING(9B) + "dV" + STRING(9B) + "P" + STRING(9B) + "dP"
+  'ortho': return, "#" + STRING(9B) + "a" + STRING(9B) + "da" + STRING(9B) + "b" + STRING(9B) + "db"  + STRING(9B) + "c" + STRING(9B) + "dc"  + STRING(9B) + "V" + STRING(9B) + "dV" + STRING(9B) + "P" + STRING(9B) + "dP"
+  'mono': return, "#" + STRING(9B) + "a" + STRING(9B) + "da" + STRING(9B) + "b" + STRING(9B) + "db"  + STRING(9B) + "c" + STRING(9B) + "dc" + STRING(9B) + "beta" + STRING(9B) + "dbeta"   + STRING(9B) + "V" + STRING(9B) + "dV" + STRING(9B) + "P" + STRING(9B) + "dP"
 	else: return, 10
 endcase
 return, 10
@@ -374,6 +478,7 @@ case self.symmetry of
 	'cubic': return, ['a']
 	'hexa': return, ['a', 'c', 'c/a']
 	'ortho': return, ['a', 'b' ,'c']
+  'mono': return, ['a', 'b' ,'c', 'beta']
 	else: return, ['']
 endcase
 return, ['']
@@ -405,6 +510,15 @@ case self.symmetry of
 			else: return, ''
 		endcase
 		end
+  'mono':  begin
+    case i of
+      0: return, 'a'
+      1: return, 'b'
+      2: return, 'c'
+      3: return, 'beta'
+      else: return, ''
+    endcase
+    end
 	else: return, ''
 endcase
 return, ''
@@ -433,7 +547,12 @@ inv = (S[0,0]-S[0,1]) - 3.*(S[0,0]-S[0,1]-0.5*S[3,3])*Gamma
 return, 1./inv
 end
 
-
+function materialObject::errTwoGReussCubic, h, k, l, a, p, da, dp
+d1 = (self->twoGReussCubic(h, k, l, 1.01*a, p) - self->twoGReussCubic(h, k, l, 0.99*a,p)) / (0.02 * a)
+d3 = (self->twoGReussCubic(h, k, l, a,1.01*p) - self->twoGReussCubic(h, k, l, a, 0.99*p)) / (0.02 * p)
+err = sqrt( (d1*da)^2 + (d3*dp)^2 )
+return, err
+end
 
 
 function materialObject::twoGReussHexa, h, k, l, a, c, p
@@ -456,14 +575,6 @@ inv = 0.5 * (2.*S[0,0] - S[0,1] - S[0,2]) $
 return, 1./inv
 end
 
-function materialObject::errTwoGReussCubic, h, k, l, a, p, da, dp
-d1 = (self->twoGReussCubic(h, k, l, 1.01*a, p) - self->twoGReussCubic(h, k, l, 0.99*a,p)) / (0.02 * a)
-d3 = (self->twoGReussCubic(h, k, l, a,1.01*p) - self->twoGReussCubic(h, k, l, a, 0.99*p)) / (0.02 * p)
-err = sqrt( (d1*da)^2 + (d3*dp)^2 )
-return, err
-end
-
-
 function materialObject::errTwoGReussHexa, h, k, l, a, c, p, da, dc, dp
 d1 = (self->twoGReussHexa(h, k, l, 1.01*a, c, p) - self->twoGReussHexa(h, k, l, 0.99*a, c, p)) $
 			/ (0.02 * a)
@@ -475,11 +586,49 @@ err = sqrt( (d1*da)^2 + (d2*dc)^2 + (d3*dp)^2 )
 return, err
 end
 
+function dhklOrtho, a, b, c, h, k, l
+tmp = h*h/(a*a) + k*k/(b*b) + l*l/(c*c) 
+return, 1./sqrt(tmp)
+end
+
+function materialObject::twoGReussMono, h, k, l, a, b, c, p
+Cmatrix = fltarr(6,6)
+for i=1,6 do begin
+  for j=1,6 do begin
+    Cmatrix[i-1,j-1] = self.Cij[i,j,0] + p * self.Cij[i,j,1] + self.Cij[i,j,2]
+  endfor
+endfor
+S = INVERT(Cmatrix)
+d = self->dhklOrtho(a, b, c, h, k, l)
+l1 = h*d/a
+l2 = k*d/b
+l3 = l*d/c
+inv = -(S[0,1]+S[0,2]+S[1,2]) + l1*l1*(S[1,2]-S[0,0]) + $
+  l2*l2*(S[1,2]-S[1,1]) + l2*l2*(S[0,1]-S[2,2]) + $
+  3. * ( l1*l1*l1*l1*S[0,0] + l2*l2*l2*l2*S[1,1] + l3*l3*l3*l3*S[2,2] + $
+      l1*l1*l2*l2*(2.*S[0,1]+S[5,5]) + l2*l2*l3*l3*(2.*S[1,2]+S[3,3]) + l1*l1*l3*l3*(2.*S[0,2]+S[4,4]) )
+return, 2./inv
+end
+
+function materialObject::errTwoGReussMono, h, k, l, a, b, c, p, da, db, dc, dp
+d1 = (self->twoGReussMono(h, k, l, 1.01*a, b, c, p) - self->twoGReussMono(h, k, l, 0.99*a, b, c, p)) $
+      / (0.02 * a)
+d2 = (self->twoGReussMono(h, k, l, a, 1.01*b, c, p) - self->twoGReussMono(h, k, l, a, 0.99*b, c, p)) $
+      / (0.02 * b) 
+d3 = (self->twoGReussMono(h, k, l, a, b, 1.01*c, p) - self->twoGReussMono(h, k, l, a, b, 0.99*c, p)) $
+      / (0.02 * c)
+d4 = (self->twoGReussMono(h, k, l, a, b, c, 1.01*p) - self->twoGReussMono(h, k, l, a, b, c, 0.99*p)) $
+      / (0.02 * p)
+      
+err = sqrt( (d1*da)^2 + (d2*db)^2 + (d3*dc)^2 + (d4*dp)^2 )
+return, err
+end
+
 
 ; returns an array of string with the name of the unit cell parameters
 ; e.g. a for cubic, a and c for hexagonal...
 function materialObject::getTwoG, h, k, l, cell
-if ((self.elasticmodel eq 0) or (self.symmetry eq 'ortho')) then begin
+if ((self.elasticmodel eq 0) or (self.symmetry eq 'mono')) then begin
   p = cell->getPressure()
   twoG = 2.*(self.iG[0] + p*self.iG[1] + p*p*self.iG[2])
   return, twoG
@@ -497,16 +646,22 @@ endif else begin
 		; print, 'hkl a c p', h, k, l, a, c, p
 		return, self->twoGReussHexa(h, k, l, a, c, p)
 	end
+  'ortho': begin
+    a = cell->getCellParValue(0)
+    b = cell->getCellParValue(1)
+    c = cell->getCellParValue(2)
+    p = cell->getPressure()
+    ; print, 'hkl a c p', h, k, l, a, c, p
+    return, self->twoGReussOrtho(h, k, l, a, b, c, p)
+  end
 	else: return, 0.
   endcase
 endelse
 return, 0.
 end
 
-; returns an array of string with the name of the unit cell parameters
-; e.g. a for cubic, a and c for hexagonal...
 function materialObject::getErrTwoG, h, k, l, cell
-if ((self.elasticmodel eq 0) or (self.symmetry eq 'ortho')) then return, 0.
+if ((self.elasticmodel eq 0) or (self.symmetry eq 'mono')) then return, 0.
 case self.symmetry of
 	'cubic': begin
 		a = cell->getCellParValue(0)
@@ -524,7 +679,18 @@ case self.symmetry of
 		dp = cell->getErrPressure()
 		return, self->errTwoGReussHexa(h, k, l, a, c, p, da, dc, dp)
 	end
-	'ortho': return, 0
+  'ortho': begin
+    a = cell->getCellParValue(0)
+    b = cell->getCellParValue(1)
+    c = cell->getCellParValue(2)
+    da = cell->getCellErrParValue(0)
+    db = cell->getCellErrParValue(1)
+    dc = cell->getCellErrParValue(2)
+    p = cell->getPressure()
+    dp = cell->getErrPressure()
+    return, self->errTwoGReussHexa(h, k, l, a, b, c, p, da, db, dc, dp)
+  end
+	'mono': return, 0
 	else: return, 0
 endcase
 return, 0
