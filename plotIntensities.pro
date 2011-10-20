@@ -100,7 +100,7 @@ if (filename ne '') then begin
 	set_plot, 'PS'
 	device, filename = filename, /PORTRAIT, xsize = 15, ysize = 10, xoffset = 2.5, yoffset = 10, /color, bits_per_pixel=24
 	; replot the data in the postscript device
-	plotTestLatticeStrains_doplot, pstate, postscript=1
+	plotIntensities_doplot, pstate, postscript=1
 	; close postscript devide, return to the old one
 	device, /CLOSE
 	set_plot, mydevice
@@ -138,9 +138,11 @@ if (directory ne '') then begin
 		for j=0, (*pstate).nUsePeak-1 do begin
 			filename = directory + (*pstate).legend[i] + "-i" + experiment->getPeakName((*pstate).peakIndex[j]) + ".dat"
 			txt = "# delta" + STRING(9B)  + "intensity\n"
-			top = N_ELEMENTS(*(*pstate).xdata(i,j))
+			if ((*pstate).nUsePeak eq 1) then top = N_ELEMENTS(*(*pstate).xdata[i]) else top = N_ELEMENTS(*(*pstate).xdata[i,j])
 			for k = 0, top-1 do begin
-				txt += fltformatB((*(*pstate).xdata(i,j))[k]) +   STRING(9B)  + fltformatC((*(*pstate).ydata(i,j))[k]) + "\n"
+				if ((*pstate).nUsePeak eq 1) then $
+				   txt += fltformatB((*(*pstate).xdata[i])[k]) +   STRING(9B)  + fltformatC((*(*pstate).ydata[i])[k]) + "\n"else $
+				   txt += fltformatB((*(*pstate).xdata[i,j])[k]) +   STRING(9B)  + fltformatC((*(*pstate).ydata[i,j])[k]) + "\n"
 			endfor
 			openw, lun, filename, /get_lun
 			printascii, lun, txt
@@ -206,6 +208,7 @@ end
 ; ***************************************************************************
 
 ; plot the data, send 'pstate', postscript = 1 if you are saving to a postscript file
+; 10/2011 changed way of accessing table elements, different if only one peak to plot. There was a crash since IDL 8.1 on that line 
 pro plotIntensities_doplot, pstate, postscript=postscript
 IF N_Elements(postscript) EQ 0 THEN postscript = 0
 ; find and fix plotting range
@@ -216,15 +219,20 @@ ymax = max([(*pstate).ymin,(*pstate).ymax])
 if (postscript eq 0) then begin ; plotting to screen
 	; ensure that data are being plotted in the draw window
 	wset, (*pstate).w_id
-	for i=0, (*pstate).nSets-1 do begin
-		for j=0, (*pstate).nUsePeak-1 do begin
-			if (i eq 0) and (j eq 0) then $
-				plot, (*(*pstate).xdata(i,j)), (*(*pstate).ydata(i,j)),  xrange = [xmin,xmax], yrange=[ymin,ymax], background=255, color=0, xtitle=(*pstate).xlabel, ytitle=(*pstate).ylabel, title=(*pstate).title, ystyle = 1, xstyle=1, PSYM=2 $
-			else $
-				oplot, (*(*pstate).xdata(i,j)), (*(*pstate).ydata(i,j)), color=0, PSYM=2
-		endfor
-	endfor
-
+  if (*pstate).nUsePeak eq 1 then begin
+    plot, (*(*pstate).xdata[0]), (*(*pstate).ydata[0]),  xrange = [xmin,xmax], yrange=[ymin,ymax], background=255, color=0, xtitle=(*pstate).xlabel, ytitle=(*pstate).ylabel, title=(*pstate).title, ystyle = 1, xstyle=1, PSYM=2   
+    for i=1, (*pstate).nSets-1 do $
+          oplot, (*(*pstate).xdata[i]), (*(*pstate).ydata[i]), color=0, PSYM=2
+  endif else begin
+  	for i=0, (*pstate).nSets-1 do begin
+  		for j=0, (*pstate).nUsePeak-1 do begin
+  			if (i eq 0) and (j eq 0) then $
+  				plot, (*(*pstate).xdata[i,j]), (*(*pstate).ydata[i,j]),  xrange = [xmin,xmax], yrange=[ymin,ymax], background=255, color=0, xtitle=(*pstate).xlabel, ytitle=(*pstate).ylabel, title=(*pstate).title, ystyle = 1, xstyle=1, PSYM=2 $
+  			else $
+  				oplot, (*(*pstate).xdata[i,j]), (*(*pstate).ydata[i,j]), color=0, PSYM=2
+  		endfor
+  	endfor
+  endelse
 	; if we are scaling, plot a red rectangle
 	if ((*pstate).scaling eq 1) then begin
 		oplot, [(*pstate).sc_xmin,(*pstate).sc_xmax,(*pstate).sc_xmax,(*pstate).sc_xmin,(*pstate).sc_xmin], [(*pstate).sc_ymin,(*pstate).sc_ymin,(*pstate).sc_ymax,(*pstate).sc_ymax,(*pstate).sc_ymin], color=10
@@ -246,14 +254,20 @@ if (postscript eq 0) then begin ; plotting to screen
 ;		endif
 ;	endif
 endif else begin ; postscript, simply plot the data
-	for i=0, (*pstate).nSets-1 do begin
-		for j=0, (*pstate).nUsePeak-1 do begin
-			if (i eq 0) and (j eq 0) then $
-				plot, (*(*pstate).xdata(i,j)), (*(*pstate).ydata(i,j)),  xrange = [xmin,xmax], yrange=[ymin,ymax], background=255, color=0, xtitle=(*pstate).xlabel, ytitle=(*pstate).ylabel, title=(*pstate).title, ystyle = 1, xstyle=1, PSYM=2 $
-			else $
-				oplot, (*(*pstate).xdata(i,j)), (*(*pstate).ydata(i,j)), color=0, PSYM=2
-		endfor
-	endfor
+  if (*pstate).nUsePeak eq 1 then begin
+    plot, (*(*pstate).xdata[0]), (*(*pstate).ydata[0]),  xrange = [xmin,xmax], yrange=[ymin,ymax], background=255, color=0, xtitle=(*pstate).xlabel, ytitle=(*pstate).ylabel, title=(*pstate).title, ystyle = 1, xstyle=1, PSYM=2 
+    for i=1, (*pstate).nSets-1 do  $
+          oplot, (*(*pstate).xdata[i]), (*(*pstate).ydata[i]), color=0, PSYM=2
+  endif else begin
+  	for i=0, (*pstate).nSets-1 do begin
+  		for j=0, (*pstate).nUsePeak-1 do begin
+  			if (i eq 0) and (j eq 0) then $
+  				plot, (*(*pstate).xdata[i,j]), (*(*pstate).ydata[i,j]),  xrange = [xmin,xmax], yrange=[ymin,ymax], background=255, color=0, xtitle=(*pstate).xlabel, ytitle=(*pstate).ylabel, title=(*pstate).title, ystyle = 1, xstyle=1, PSYM=2 $
+  			else $
+  				oplot, (*(*pstate).xdata[i,j]), (*(*pstate).ydata[i,j]), color=0, PSYM=2
+  		endfor
+  	endfor
+	endelse
 endelse
 end
 
@@ -374,7 +388,8 @@ file_bttn3 = WIDGET_BUTTON(file_menu, VALUE='Export plot to PS', event_pro = 'pl
 file_bttn4 = WIDGET_BUTTON(file_menu, VALUE='Close window', event_pro ='plotIntensities_cleanupmenu', /SEPARATOR)
 ; other
 status = widget_label(tlb, value=' ', /dynamic_resize)
-draw = widget_draw(tlb, xsize=500, ysize=300, /motion_events, /button_events, event_pro='plotIntensities_draw')
+; 10/2011, added RETAIN=2 so the plot does not get cleared by other windows.
+draw = widget_draw(tlb, xsize=500, ysize=300, /motion_events, /button_events, event_pro='plotIntensities_draw', RETAIN=2)
 ; build the UI
 Widget_Control, tlb, /Realize
 ; get important information to communicate in the application

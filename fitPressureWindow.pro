@@ -162,7 +162,7 @@ refine = WIDGET_BUTTON(buttons1, VALUE='Refine pressures', UVALUE='REFINE')
 export = WIDGET_BUTTON(buttons1, VALUE='Export results', UVALUE='EXPORT')
 plotPV = WIDGET_BASE(buttons1,/COLUMN, /ALIGN_CENTER, /FRAME, XSIZE = 100)
 values = ['Pressure', 'Volume']
-plotwhat = CW_BGROUP(plotPV, values, /COLUMN, /EXCLUSIVE, LABEL_TOP='Plots', UVALUE='NOTHING')
+plotwhat = CW_BGROUP(plotPV, values, /COLUMN, /EXCLUSIVE, LABEL_TOP='Plots', UVALUE='NOTHING', SET_VALUE=0)
 plotit = WIDGET_BUTTON(plotPV, VALUE='Plot', UVALUE='PLOT')
 ; log
 log = WIDGET_TEXT(fit, XSIZE=75, YSIZE=30, /ALIGN_CENTER, /EDITABLE, /WRAP, /SCROLL)

@@ -109,6 +109,7 @@ endif
 end
 
 ; export to ascii
+; 10/2011 changed way of accessing table elements, different if only one peak to plot. There was a crash since IDL 8.1 on that line 
 pro plotTestLatticeStrains_exportascii, event
 common experimentwindow, set, experiment
 common default, defaultdir
@@ -138,14 +139,20 @@ if (directory ne '') then begin
 			filename = directory + (*pstate).legend[i] + "-d" + experiment->getPeakName((*pstate).peakIndex[j]) + ".dat"
 			filename2 = directory + (*pstate).legend[i] + "-d" + experiment->getPeakName((*pstate).peakIndex[j]) + ".fit"
 			txt = "# delta" + STRING(9B)  + "meas2theta\n"
-			top = N_ELEMENTS(*(*pstate).xdata(i,j))
+			if ((*pstate).nUsePeak eq 1) then $
+			   top = N_ELEMENTS(*(*pstate).xdata[i,j]) else $
+			   top = N_ELEMENTS(*(*pstate).xdata[i])
 			for k = 0, top-1 do begin
-				txt += fltformatB((*(*pstate).xdata(i,j))[k]) +   STRING(9B)  + fltformatA((*(*pstate).ydata(i,j))[k]) + "\n"
+			  if ((*pstate).nUsePeak eq 1) then $
+				   txt += fltformatB((*(*pstate).xdata[i,j])[k]) +   STRING(9B)  + fltformatA((*(*pstate).ydata[i,j])[k]) + "\n" else $
+				   txt += fltformatB((*(*pstate).xdata[i])[k]) +   STRING(9B)  + fltformatA((*(*pstate).ydata[i])[k])
 			endfor
 			txt2 = "# delta" + STRING(9B)  + "fit2theta\n"
 			top = N_ELEMENTS((*pstate).xdatafit)
 			for k = 0, top-1 do begin
-				txt2 += fltformatB(((*pstate).xdatafit)[k]) +   STRING(9B)  + fltformatA((*(*pstate).ydatafit(i,j))[k])+ "\n"
+        if ((*pstate).nUsePeak eq 1) then $
+				   txt2 += fltformatB(((*pstate).xdatafit)[k]) +   STRING(9B)  + fltformatA((*(*pstate).ydatafit[i,j])[k])+ "\n" else $
+           txt2 += fltformatB(((*pstate).xdatafit)[k]) +   STRING(9B)  + fltformatA((*(*pstate).ydatafit[i])[k])+ "\n"
 			endfor
 			openw, lun, filename, /get_lun
 			printascii, lun, txt
@@ -215,6 +222,7 @@ end
 ; ***************************************************************************
 
 ; plot the data, send 'pstate', postscript = 1 if you are saving to a postscript file
+; 10/2011 changed way of accessing table elements, different if only one peak to plot. There was a crash since IDL 8.1 on that line 
 pro plotTestLatticeStrains_doplot, pstate, postscript=postscript
 IF N_Elements(postscript) EQ 0 THEN postscript = 0
 ; find and fix plotting range
@@ -225,15 +233,25 @@ ymax = max([(*pstate).ymin,(*pstate).ymax])
 if (postscript eq 0) then begin ; plotting to screen
 	; ensure that data are being plotted in the draw window
 	wset, (*pstate).w_id
-	for i=0, (*pstate).nSets-1 do begin
-		for j=0, (*pstate).nUsePeak-1 do begin
-			if (i eq 0) and (j eq 0) then $
-				plot, (*(*pstate).xdata(i,j)), (*(*pstate).ydata(i,j)),  xrange = [xmin,xmax], yrange=[ymin,ymax], background=255, color=0, xtitle=(*pstate).xlabel, ytitle=(*pstate).ylabel, title=(*pstate).title, ystyle = 1, xstyle=1, PSYM=2 $
-			else $
-				oplot, (*(*pstate).xdata(i,j)), (*(*pstate).ydata(i,j)), color=0, PSYM=2
-			oplot, (*pstate).xdatafit, (*(*pstate).ydatafit(i,j)), color=10
-		endfor
-	endfor
+	if ((*pstate).nUsePeak eq 1) then begin
+	   for i=0, (*pstate).nSets-1 do begin
+        if (i eq 0) then $
+          plot, (*(*pstate).xdata[0]), (*(*pstate).ydata[0]),  xrange = [xmin,xmax], yrange=[ymin,ymax], background=255, color=0, xtitle=(*pstate).xlabel, ytitle=(*pstate).ylabel, title=(*pstate).title, ystyle = 1, xstyle=1, PSYM=2 $
+        else $
+          oplot, (*(*pstate).xdata[i]), (*(*pstate).ydata[i]), color=0, PSYM=2
+        oplot, (*pstate).xdatafit, (*(*pstate).ydatafit[i]), color=10
+    endfor
+	endif else begin
+  	for i=0, (*pstate).nSets-1 do begin
+  		for j=0, (*pstate).nUsePeak-1 do begin
+  			if (i eq 0) and (j eq 0) then $
+  				plot, (*(*pstate).xdata[i,j]), (*(*pstate).ydata[i,j]),  xrange = [xmin,xmax], yrange=[ymin,ymax], background=255, color=0, xtitle=(*pstate).xlabel, ytitle=(*pstate).ylabel, title=(*pstate).title, ystyle = 1, xstyle=1, PSYM=2 $
+  			else $
+  				oplot, (*(*pstate).xdata[i,j]), (*(*pstate).ydata[i,j]), color=0, PSYM=2
+  			oplot, (*pstate).xdatafit, (*(*pstate).ydatafit[i,j]), color=10
+  		endfor
+  	endfor
+	endelse
 
 	; if we are scaling, plot a red rectangle
 	if ((*pstate).scaling eq 1) then begin
@@ -256,15 +274,25 @@ if (postscript eq 0) then begin ; plotting to screen
 ;		endif
 ;	endif
 endif else begin ; postscript, simply plot the data
-	for i=0, (*pstate).nSets-1 do begin
-		for j=0, (*pstate).nUsePeak-1 do begin
-			if (i eq 0) and (j eq 0) then $
-				plot, (*(*pstate).xdata(i,j)), (*(*pstate).ydata(i,j)),  xrange = [xmin,xmax], yrange=[ymin,ymax], background=255, color=0, xtitle=(*pstate).xlabel, ytitle=(*pstate).ylabel, title=(*pstate).title, ystyle = 1, xstyle=1, PSYM=2 $
-			else $
-				oplot, (*(*pstate).xdata(i,j)), (*(*pstate).ydata(i,j)), color=0, PSYM=2
-			oplot, (*pstate).xdatafit, (*(*pstate).ydatafit(i,j)), color=10
-		endfor
-	endfor
+  if ((*pstate).nUsePeak eq 1) then begin
+      for i=0, (*pstate).nSets-1 do begin
+        if (i eq 0) then $
+          plot, (*(*pstate).xdata[0]), (*(*pstate).ydata[0]),  xrange = [xmin,xmax], yrange=[ymin,ymax], background=255, color=0, xtitle=(*pstate).xlabel, ytitle=(*pstate).ylabel, title=(*pstate).title, ystyle = 1, xstyle=1, PSYM=2 $
+        else $
+          oplot, (*(*pstate).xdata[i]), (*(*pstate).ydata[i]), color=0, PSYM=2
+        oplot, (*pstate).xdatafit, (*(*pstate).ydatafit[i]), color=10
+    endfor
+  endif else begin
+  	for i=0, (*pstate).nSets-1 do begin
+  		for j=0, (*pstate).nUsePeak-1 do begin
+  			if (i eq 0) and (j eq 0) then $
+  				plot, (*(*pstate).xdata[i,j]), (*(*pstate).ydata[i,j]),  xrange = [xmin,xmax], yrange=[ymin,ymax], background=255, color=0, xtitle=(*pstate).xlabel, ytitle=(*pstate).ylabel, title=(*pstate).title, ystyle = 1, xstyle=1, PSYM=2 $
+  			else $
+  				oplot, (*(*pstate).xdata[i,j]), (*(*pstate).ydata[i,j]), color=0, PSYM=2
+  			oplot, (*pstate).xdatafit, (*(*pstate).ydatafit[i,j]), color=10
+  		endfor
+  	endfor
+	endelse
 endelse
 end
 
@@ -273,6 +301,7 @@ end
 ; ***************************************************************************
 
 ; plot the data, send 'pstate'
+; 10/2011 changed way of accessing table elements, different if only one peak to plot. There was a crash since IDL 8.1 on that line 
 pro plotTestLatticeStrains_doplotdynamic, pstate, savemovie, filename
 if (savemovie) then mpegID = MPEG_OPEN([500, 300])
 ; find and fix plotting range
@@ -283,21 +312,35 @@ ymax = max([(*pstate).ymin,(*pstate).ymax])
 ; ensure that data are being plotted in the draw window
 wset, (*pstate).w_id
 ; plot!!
-for i=0, (*pstate).nSets-1 do begin
-	; plot
-	for j=0, (*pstate).nUsePeak-1 do begin
-		if (j eq 0) then $
-		plot, (*(*pstate).xdata(i,j)), (*(*pstate).ydata(i,j)),  xrange = [xmin,xmax], yrange=[ymin,ymax], background=255, color=0, xtitle=(*pstate).xlabel, ytitle=(*pstate).ylabel, title=(*pstate).title, ystyle = 1, xstyle=1, PSYM=2 $
-		else oplot, (*(*pstate).xdata(i,j)), (*(*pstate).ydata(i,j)), color=0, PSYM=2
-		oplot, (*pstate).xdatafit, (*(*pstate).ydatafit(i,j)), color=10
-	endfor
-	; legend
-	x3 = xmax-0.3*(xmax-xmin)
-	y1 = ymax-0.07*(ymax-ymin)
-	xyouts, x3, y1, (*pstate).legend[i], color=0, charsize=1.8, charthick=2
-	if (savemovie) then MPEG_PUT, mpegID, window=(*pstate).w_id, FRAME=i*3, /ORDER
-	wait, 0.3
-endfor
+if (*pstate).nUsePeak eq 1 then begin
+  for i=0, (*pstate).nSets-1 do begin
+    ; plot
+    plot, (*(*pstate).xdata[i]), (*(*pstate).ydata[i]),  xrange = [xmin,xmax], yrange=[ymin,ymax], background=255, color=0, xtitle=(*pstate).xlabel, ytitle=(*pstate).ylabel, title=(*pstate).title, ystyle = 1, xstyle=1, PSYM=2 
+    oplot, (*pstate).xdatafit, (*(*pstate).ydatafit[i]), color=10
+    ; legend
+    x3 = xmax-0.3*(xmax-xmin)
+    y1 = ymax-0.07*(ymax-ymin)
+    xyouts, x3, y1, (*pstate).legend[i], color=0, charsize=1.8, charthick=2
+    if (savemovie) then MPEG_PUT, mpegID, window=(*pstate).w_id, FRAME=i*3, /ORDER
+    wait, 0.3
+  endfor
+endif else begin
+  for i=0, (*pstate).nSets-1 do begin
+  	; plot
+  	for j=0, (*pstate).nUsePeak-1 do begin
+  		if (j eq 0) then $
+  		plot, (*(*pstate).xdata[i,j]), (*(*pstate).ydata[i,j]),  xrange = [xmin,xmax], yrange=[ymin,ymax], background=255, color=0, xtitle=(*pstate).xlabel, ytitle=(*pstate).ylabel, title=(*pstate).title, ystyle = 1, xstyle=1, PSYM=2 $
+  		else oplot, (*(*pstate).xdata[i,j]), (*(*pstate).ydata[i,j]), color=0, PSYM=2
+  		oplot, (*pstate).xdatafit, (*(*pstate).ydatafit[i,j]), color=10
+  	endfor
+  	; legend
+  	x3 = xmax-0.3*(xmax-xmin)
+  	y1 = ymax-0.07*(ymax-ymin)
+  	xyouts, x3, y1, (*pstate).legend[i], color=0, charsize=1.8, charthick=2
+  	if (savemovie) then MPEG_PUT, mpegID, window=(*pstate).w_id, FRAME=i*3, /ORDER
+  	wait, 0.3
+  endfor
+endelse
 if (savemovie) then begin
 	MPEG_SAVE, mpegID, FILENAME=filename
 	MPEG_CLOSE, mpegID
@@ -401,7 +444,8 @@ file_bttn3 = WIDGET_BUTTON(file_menu, VALUE='Export plot to PS', event_pro = 'pl
 file_bttn4 = WIDGET_BUTTON(file_menu, VALUE='Close window', event_pro ='plotTestLatticeStrains_cleanupmenu', /SEPARATOR)
 ; other
 status = widget_label(tlb, value=' ', /dynamic_resize)
-draw = widget_draw(tlb, xsize=500, ysize=300, /motion_events, /button_events, event_pro='plotTestLatticeStrains_draw')
+; 10/2011, added RETAIN=2 so the plot does not get cleared by other windows.
+draw = widget_draw(tlb, xsize=500, ysize=300, /motion_events, /button_events, event_pro='plotTestLatticeStrains_draw', RETAIN=2 )
 ; build the UI
 Widget_Control, tlb, /Realize
 ; get important information to communicate in the application
@@ -410,7 +454,7 @@ xmin = 0.
 xmax = 360.
 ymin = ydatamin
 ymax = ydatamax
-state = {nSets: nSets, nUsePeak: nUsePeak, peakindex: peakindex, xdata: xdata, ydata: ydata, xdatafit: xdatafit, ydatafit: ydatafit, tlb: tlb, w_id:w_id, draw:draw, status:status, xlabel:xlabel, ylabel:ylabel, title: title, xmin:xmin, xmax:xmax, ymin:ymin, ymax:ymax, ydatamin: ydatamin, ydatamax:  ydatamax,sc_xmin:0.0, sc_xmax:0.0, sc_ymin:0.0, sc_ymax:0.0, scaling:0, legend: legend}
+state = {windowID:w_id, nSets: nSets, nUsePeak: nUsePeak, peakindex: peakindex, xdata: xdata, ydata: ydata, xdatafit: xdatafit, ydatafit: ydatafit, tlb: tlb, w_id:w_id, draw:draw, status:status, xlabel:xlabel, ylabel:ylabel, title: title, xmin:xmin, xmax:xmax, ymin:ymin, ymax:ymax, ydatamin: ydatamin, ydatamax:  ydatamax,sc_xmin:0.0, sc_xmax:0.0, sc_ymin:0.0, sc_ymax:0.0, scaling:0, legend: legend}
 ; create a pointer to the state structure and put that pointer
 ; into the user value of the top-level base
 pstate = ptr_new(state,/no_copy)
