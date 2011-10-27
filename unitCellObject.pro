@@ -30,6 +30,7 @@ self.name = name
 case self.symmetry of
 	'cubic': self.cell = PTR_NEW(fltarr(1,2))
 	'hexa':  self.cell = PTR_NEW(fltarr(2,2))
+	'trig':  self.cell = PTR_NEW(fltarr(2,2))
 	'ortho':  self.cell = PTR_NEW(fltarr(3,2))
   'mono':  self.cell = PTR_NEW(fltarr(4,2))
 	else: self.cell = PTR_NEW(fltarr(1,1))
@@ -47,6 +48,11 @@ if (self.symmetry eq 'hexa') then begin
 	(*self.cell)[0,1] = fit[1]
 	(*self.cell)[1,0] = fit[2]
 	(*self.cell)[1,1] = fit[3]
+endif else if (self.symmetry eq 'trig') then begin
+  (*self.cell)[0,0] = fit[0]
+  (*self.cell)[0,1] = fit[1]
+  (*self.cell)[1,0] = fit[2]
+  (*self.cell)[1,1] = fit[3]
 endif else if (self.symmetry eq 'ortho') then begin
   (*self.cell)[0,0] = fit[0]
   (*self.cell)[0,1] = fit[1]
@@ -84,6 +90,11 @@ if (self.symmetry eq 'hexa') then begin
 	dv = sqrt( (2.*(*self.cell)[0,0]* (*self.cell)[0,1]*(*self.cell)[1,0]*sin(!pi/3.))^2 + $
 		((*self.cell)[0,0]*(*self.cell)[0,0]*(*self.cell)[1,1]*sin(!pi/3.))^2 )
 	return, [v,dv]
+endif else if (self.symmetry eq 'trig') then begin
+  v = (*self.cell)[0,0]*(*self.cell)[0,0]*(*self.cell)[1,0]*sin(!pi/3.)
+  dv = sqrt( (2.*(*self.cell)[0,0]* (*self.cell)[0,1]*(*self.cell)[1,0]*sin(!pi/3.))^2 + $
+    ((*self.cell)[0,0]*(*self.cell)[0,0]*(*self.cell)[1,1]*sin(!pi/3.))^2 )
+  return, [v,dv]
 endif else if (self.symmetry eq 'ortho') then begin
   v = (*self.cell)[0,0]*(*self.cell)[1,0]*(*self.cell)[2,0]
   dv = sqrt( ((*self.cell)[0,0]*(*self.cell)[1,0]*(*self.cell)[2,1])^2 + $
@@ -111,6 +122,9 @@ if (self.symmetry eq 'hexa') then begin
 	return, v
 endif else if (self.symmetry eq 'ortho') then begin
   v = (*self.cell)[0,0]*(*self.cell)[1,0]*(*self.cell)[2,0]
+  return, v
+endif else if (self.symmetry eq 'trig') then begin
+  v = (*self.cell)[0,0]*(*self.cell)[0,0]*(*self.cell)[1,0]*sin(!pi/3.)
   return, v
 endif  else if (self.symmetry eq 'mono') then begin
   v = (*self.cell)[0,0]*(*self.cell)[1,0]*(*self.cell)[2,0]*sin((*self.cell)[3,0])
@@ -141,6 +155,14 @@ case self.symmetry of
 			else: return, 0.
 		endcase
 		end
+	'trig':  begin
+    case i of
+      0: return, (*self.cell)[0,0]
+      1: return, (*self.cell)[1,0]
+      2: return, ((*self.cell)[1,0]/(*self.cell)[0,0])
+      else: return, 0.
+    endcase
+    end
 	'ortho':  begin
 		case i of
 			0: return, (*self.cell)[0,0]
@@ -181,6 +203,14 @@ case self.symmetry of
 			else: return, 0.
 		endcase
 		end
+	'trig':  begin
+    case i of
+      0: return, (*self.cell)[0,1]
+      1: return, (*self.cell)[1,1]
+      2: return, sqrt( ((*self.cell)[1,1]/(*self.cell)[0,0])^2 +  ((*self.cell)[0,1]*(*self.cell)[1,0]/((*self.cell)[0,0]*(*self.cell)[0,0]))^2)
+      else: return, 0.
+    endcase
+    end
 	'ortho':  begin
 		case i of
 			0: return, (*self.cell)[0,1]
@@ -207,6 +237,9 @@ function unitCellObject::getDHKL, h, k, l
 if (self.symmetry eq 'hexa') then begin
 	tmp = 4.*(h*h+h*k+k*k)/(3.*(*self.cell)[0,0]*(*self.cell)[0,0])+l*l/((*self.cell)[1,0]*(*self.cell)[1,0])
 	return, 1./sqrt(tmp)
+endif else if (self.symmetry eq 'trig') then begin
+  tmp = 4.*(h*h+h*k+k*k)/(3.*(*self.cell)[0,0]*(*self.cell)[0,0])+l*l/((*self.cell)[1,0]*(*self.cell)[1,0])
+  return, 1./sqrt(tmp)
 endif else if (self.symmetry eq 'mono') then begin
   tmp = h*h/((*self.cell)[0,0]*sin((*self.cell)[3,0]))^2 + k*k/((*self.cell)[1,0])^2 + l*l/((*self.cell)[2,0]*sin((*self.cell)[3,0]))^2 - 2.*h*l*cos((*self.cell)[3,0])/((*self.cell)[0,0]*(*self.cell)[2,0]*(sin((*self.cell)[3,0]))^2)
   return, 1./sqrt(tmp)
@@ -238,6 +271,10 @@ if (self.symmetry eq 'hexa') then $
 	txt += "a = " + fltformatA((*self.cell)[0,0]) + " (+/-) "+ fltformatA((*self.cell)[0,1]) + "\n" +$
 		"c = " + fltformatA((*self.cell)[1,0]) + " (+/-) "+ fltformatA((*self.cell)[1,1]) + "\n" + $
 		"c/a = " +  fltformatA((*self.cell)[1,0]/(*self.cell)[0,0]) + "\n"
+if (self.symmetry eq 'trig') then $
+  txt += "a = " + fltformatA((*self.cell)[0,0]) + " (+/-) "+ fltformatA((*self.cell)[0,1]) + "\n" +$
+    "c = " + fltformatA((*self.cell)[1,0]) + " (+/-) "+ fltformatA((*self.cell)[1,1]) + "\n" + $
+    "c/a = " +  fltformatA((*self.cell)[1,0]/(*self.cell)[0,0]) + "\n"
 if (self.symmetry eq 'ortho') then $
   txt += "a = " + fltformatA((*self.cell)[0,0]) + " (+/-) " + fltformatA((*self.cell)[0,1]) + "\n" +$
     "b = " + fltformatA((*self.cell)[1,0]) + " (+/-) " + fltformatA((*self.cell)[1,1]) + "\n" + $
@@ -256,6 +293,10 @@ end
 function unitCellObject::summaryPressure
 txt = self.name + "\n"
 if (self.symmetry eq 'hexa') then $
+  txt += "a = " + fltformatA((*self.cell)[0,0]) + " (+/-) "+ fltformatA((*self.cell)[0,1]) + "\n" +$
+    "c = " + fltformatA((*self.cell)[1,0]) + " (+/-) "+ fltformatA((*self.cell)[1,1]) + "\n" + $
+    "c/a = " +  fltformatA((*self.cell)[1,0]/(*self.cell)[0,0]) + "\n"
+if (self.symmetry eq 'trig') then $
   txt += "a = " + fltformatA((*self.cell)[0,0]) + " (+/-) "+ fltformatA((*self.cell)[0,1]) + "\n" +$
     "c = " + fltformatA((*self.cell)[1,0]) + " (+/-) "+ fltformatA((*self.cell)[1,1]) + "\n" + $
     "c/a = " +  fltformatA((*self.cell)[1,0]/(*self.cell)[0,0]) + "\n"
@@ -280,6 +321,8 @@ V = self->getVolume()
 txt = ""
 if (self.symmetry eq 'hexa') then $
 	txt += fltformatA((*self.cell)[0,0]) + STRING(9B) + fltformatA((*self.cell)[0,1]) + STRING(9B) + fltformatA((*self.cell)[1,0]) +  STRING(9B)+ fltformatA((*self.cell)[1,1]) + STRING(9B) + fltformatA(V[0]) + STRING(9B) + fltformatA(V[1]) + STRING(9B) +  fltformatA(self.P) + STRING(9B) + fltformatA(self.dp)
+if (self.symmetry eq 'trig') then $
+  txt += fltformatA((*self.cell)[0,0]) + STRING(9B) + fltformatA((*self.cell)[0,1]) + STRING(9B) + fltformatA((*self.cell)[1,0]) +  STRING(9B)+ fltformatA((*self.cell)[1,1]) + STRING(9B) + fltformatB(V[0]) + STRING(9B) + fltformatB(V[1]) + STRING(9B) + STRING(9B) +  fltformatB(self.T) +  fltformatB(self.P) + STRING(9B) + fltformatB(self.dp)
 if (self.symmetry eq 'ortho') then $
   txt += fltformatA((*self.cell)[0,0]) + STRING(9B) + fltformatA((*self.cell)[0,1]) + STRING(9B) + fltformatA((*self.cell)[1,0]) +  STRING(9B)+ fltformatA((*self.cell)[1,1]) + STRING(9B)+ fltformatA((*self.cell)[2,0]) +  STRING(9B)+ fltformatA((*self.cell)[2,1]) + STRING(9B) + fltformatA(V[0]) + STRING(9B) + fltformatA(V[1]) + STRING(9B) +  fltformatA(self.P) + STRING(9B) + fltformatA(self.dp)
 if (self.symmetry eq 'mono') then $

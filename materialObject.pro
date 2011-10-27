@@ -25,7 +25,7 @@
 ; - 0 cubic
 ; - 1 hexa for hexagonal
 ; - 2 otho for orthorhombic
-; - 3 trig for trigonal (not implemented)
+; - 3 trig for trigonal 
 ; - 4 mono for monoclinic
 ; Equation of state (Birch-Mur...)
 ; - V0: unit cell volume at zero pressure
@@ -174,6 +174,69 @@ endfor
 self.elasticmodel=1
 end
 
+pro materialObject::setAnisPropTrig, c11,  c33,  c12,  c13, c14, c15, c44,  dc11,  dc33,  dc12,  dc13, dc14, dc15, dc44,   ddc11,  ddc33,  ddc12,  ddc13, ddc14, ddc15, ddc44
+for i=0,6 do begin
+  for j=0,6 do begin
+    for k=0,2 do begin
+      self.Cij[i,j,k] = 0.0
+    endfor
+  endfor
+endfor
+self.Cij[1,1,0] = c11
+self.Cij[2,2,0] = c11
+self.Cij[3,3,0] = c33
+self.Cij[1,2,0] = c12
+self.Cij[1,3,0] = c13
+self.Cij[2,3,0] = c13
+self.Cij[1,4,0] = c14
+self.Cij[1,5,0] = c15
+self.Cij[2,4,0] = -c14
+self.Cij[2,5,0] = -c15
+self.Cij[4,6,0] = -c15
+self.Cij[5,6,0] = -c14
+self.Cij[4,4,0] = c44
+self.Cij[5,5,0] = c44
+self.Cij[6,6,0] = 0.5*(c11-c12)
+self.Cij[1,1,1] = dc11
+self.Cij[2,2,1] = dc11
+self.Cij[3,3,1] = dc33
+self.Cij[1,2,1] = dc12
+self.Cij[1,3,1] = dc13
+self.Cij[2,3,1] = dc13
+self.Cij[1,4,1] = dc14
+self.Cij[1,5,1] = dc15
+self.Cij[2,4,1] = -dc14
+self.Cij[2,5,1] = -dc15
+self.Cij[4,6,1] = -dc15
+self.Cij[5,6,1] = -dc14
+self.Cij[4,4,1] = dc44
+self.Cij[5,5,1] = dc44
+self.Cij[6,6,1] = 0.5*(dc11-dc12)
+self.Cij[1,1,2] = ddc11
+self.Cij[2,2,2] = ddc11
+self.Cij[3,3,2] = ddc33
+self.Cij[1,2,2] = ddc12
+self.Cij[1,3,2] = ddc13
+self.Cij[2,3,2] = ddc13
+self.Cij[1,4,2] = ddc14
+self.Cij[1,5,2] = ddc15
+self.Cij[2,4,2] = -ddc14
+self.Cij[2,5,2] = -ddc15
+self.Cij[4,6,2] = -ddc15
+self.Cij[5,6,2] = -ddc14
+self.Cij[4,4,2] = ddc44
+self.Cij[5,5,2] = ddc44
+self.Cij[6,6,2] = 0.5*(ddc11-ddc12)
+for i=1,6 do begin
+  for j=1,i-1 do begin
+    for k=0,2 do begin
+      self.Cij[i,j,k] = self.Cij[j,i,k] 
+    endfor
+  endfor
+endfor
+self.elasticmodel=1
+end
+
 
 pro materialObject::setAnisPropCubic, c11,  c12, c44,  dc11,  dc12,  dc44,   ddc11, ddc12,  ddc44
 for i=0,6 do begin
@@ -227,6 +290,7 @@ case code  OF
 	0: self.symmetry = 'cubic'
 	1: self.symmetry = 'hexa'
 	2: self.symmetry = 'ortho'
+	3: self.symmetry = 'trig'
   4: self.symmetry = 'mono'
 	else:
 endcase
@@ -251,8 +315,8 @@ end
 function materialObject::refineUnitCell, latticestrain
 cell = OBJ_NEW('unitCellObject', self.symmetry, latticestrain->getName())
 if (latticestrain->getSet() eq 1) then begin
-  ; Hexagonal
-	if(self.symmetry eq 'hexa') then begin 
+  ; Hexagonal or trigonal
+	if ((self.symmetry eq 'hexa') or (self.symmetry eq 'trig')) then begin 
 		nuse = latticestrain->getnuse()
 		d = latticestrain->getd()
 		dd = latticestrain->getdd()
@@ -377,6 +441,7 @@ case code  OF
 	0: return, 'cubic'
 	1: return, 'hexa'
 	2: return, 'ortho'
+	3: return, 'trig'
   4: return, 'mono'
 	else: return, 10
 endcase
@@ -388,6 +453,7 @@ case self.symmetry of
 	'cubic': return, 0
 	'hexa': return, 1
 	'ortho': return, 2
+	'trig': return, 3
   'mono': return, 4
 	else: return, 10
 endcase
@@ -439,6 +505,14 @@ endif else begin
 		str += "\tC12 = " + STRTRIM(STRING(self.Cij[1,2,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,2,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,2,2],/PRINT),2) + "*P*P\n"
 		str += "\tC13 = " + STRTRIM(STRING(self.Cij[1,3,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,3,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,3,2],/PRINT),2) + "*P*P\n"
 		str += "\tC44 = " + STRTRIM(STRING(self.Cij[4,4,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[4,4,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[4,4,2],/PRINT),2) + "*P*P\n"
+	endif else if (self.symmetry eq 'trig') then begin
+    str += "\tC11 = " + STRTRIM(STRING(self.Cij[1,1,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,1,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,1,2],/PRINT),2) + "*P*P\n"
+    str += "\tC33 = " + STRTRIM(STRING(self.Cij[3,3,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[3,3,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[3,3,2],/PRINT),2) + "*P*P\n"
+    str += "\tC12 = " + STRTRIM(STRING(self.Cij[1,2,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,2,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,2,2],/PRINT),2) + "*P*P\n"
+    str += "\tC13 = " + STRTRIM(STRING(self.Cij[1,3,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,3,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,3,2],/PRINT),2) + "*P*P\n"
+    str += "\tC14 = " + STRTRIM(STRING(self.Cij[1,4,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,4,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,4,2],/PRINT),2) + "*P*P\n"
+    str += "\tC15 = " + STRTRIM(STRING(self.Cij[1,5,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,5,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,5,2],/PRINT),2) + "*P*P\n"
+    str += "\tC44 = " + STRTRIM(STRING(self.Cij[4,4,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[4,4,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[4,4,2],/PRINT),2) + "*P*P\n"
 	endif else if (self.symmetry eq 'ortho') then begin
     str += "\tC11 = " + STRTRIM(STRING(self.Cij[1,1,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,1,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,1,2],/PRINT),2) + "*P*P\n"
     str += "\tC22 = " + STRTRIM(STRING(self.Cij[2,2,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[2,2,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[2,2,2],/PRINT),2) + "*P*P\n"
@@ -463,6 +537,7 @@ case self.symmetry of
 	'cubic': return, "#" + STRING(9B) + "a"  + STRING(9B) + "da" + STRING(9B)+ "V" + STRING(9B) + "dV"  + STRING(9B) + "P" + STRING(9B) + "dP"
 	'hexa': return, "#" + STRING(9B) + "a" + STRING(9B) + "da" + STRING(9B) + "c" + STRING(9B) + "dc"  + STRING(9B) + "V" + STRING(9B) + "dV" + STRING(9B) + "P" + STRING(9B) + "dP"
   'ortho': return, "#" + STRING(9B) + "a" + STRING(9B) + "da" + STRING(9B) + "b" + STRING(9B) + "db"  + STRING(9B) + "c" + STRING(9B) + "dc"  + STRING(9B) + "V" + STRING(9B) + "dV" + STRING(9B) + "P" + STRING(9B) + "dP"
+  'trig': return, "#" + STRING(9B) + "a" + STRING(9B) + "da" + STRING(9B) + "c" + STRING(9B) + "dc"  + STRING(9B) + "V" + STRING(9B) + "dV" + STRING(9B) + "P" + STRING(9B) + "dP"
   'mono': return, "#" + STRING(9B) + "a" + STRING(9B) + "da" + STRING(9B) + "b" + STRING(9B) + "db"  + STRING(9B) + "c" + STRING(9B) + "dc" + STRING(9B) + "beta" + STRING(9B) + "dbeta"   + STRING(9B) + "V" + STRING(9B) + "dV" + STRING(9B) + "P" + STRING(9B) + "dP"
 	else: return, 10
 endcase
@@ -478,6 +553,7 @@ case self.symmetry of
 	'cubic': return, ['a']
 	'hexa': return, ['a', 'c', 'c/a']
 	'ortho': return, ['a', 'b' ,'c']
+	'trig': return, ['a', 'c', 'c/a']
   'mono': return, ['a', 'b' ,'c', 'beta']
 	else: return, ['']
 endcase
@@ -510,6 +586,14 @@ case self.symmetry of
 			else: return, ''
 		endcase
 		end
+	'trig':  begin
+    case i of
+      0: return, 'a'
+      1: return, 'c'
+      2: return, 'c/a'
+      else: return, ''
+    endcase
+    end
   'mono':  begin
     case i of
       0: return, 'a'
@@ -586,6 +670,62 @@ err = sqrt( (d1*da)^2 + (d2*dc)^2 + (d3*dp)^2 )
 return, err
 end
 
+function materialObject::twoGReussTrig, h, k, l, a, c, p;, T
+Cmatrix = fltarr(6,6)
+;TC = T - 300.
+for i=1,6 do begin
+  for j=1,6 do begin
+    Cmatrix[i-1,j-1] = self.Cij[i,j,0] + p * self.Cij[i,j,1] + self.Cij[i,j,2] * p * p ;+ TC * self.Cij[i,j,3] + TC*TC * self.Cij[i,j,4]
+  endfor
+endfor
+S = INVERT(Cmatrix)
+M = 4.*c*c*(h*h+h*k+k*k)+3.*a*a*l*l
+l1 = sqrt(3.)*c*h/M
+l2 = c*(h+2.*k)/M
+l3 = sqrt(3.)*a*l/M
+inv = 0.5 * (2.*S[0,0] - S[0,1] - S[0,2]) $
+    + l3*l3* (-5.*S[0,0] + S[0,1] + 5.*S[0,2] - S[2,2] + 3.*S[3,3]) $
+    + l3*l3*l3*l3* (3.*S[0,0] - 6.*S[0,2] + 3.*S[2,2] - 3.*S[3,3])  $
+    + 3.*l2*l3*(3.*l1*l1-l2*l2)*S[0,3]  $
+    + 3.*l1*l3*(3.*l2*l2-l1*l1)*S[1,4] 
+; print, '2G' , 1./inv
+return, 1./inv
+end
+
+function materialObject::errTwoGReussTrig, h, k, l, a, c, p, da, dc, dp
+d1 = (self->twoGReussTrig(h, k, l, 1.01*a, c, p) - self->twoGReussTrig(h, k, l, 0.99*a, c, p)) $ 
+      / (0.02 * a)
+d2 = (self->twoGReussTrig(h, k, l, a, 1.01*c, p) - self->twoGReussTrig(h, k, l, a, 0.99*c, p)) $
+      / (0.02 * c)
+d3 = (self->twoGReussTrig(h, k, l, a, c, 1.01*p) - self->twoGReussTrig(h, k, l, a, c, 0.99*p)) $
+      / (0.02 * p)
+err = sqrt( (d1*da)^2 + (d2*dc)^2 + (d3*dp)^2 )
+return, err
+end
+
+;Probably copy/past error from PolydefixED
+;function materialObject::twoGReussCubic, h, k, l, a, p, T
+;Cmatrix = fltarr(6,6)
+;TC = T - 300.
+;for i=1,6 do begin
+;  for j=1,6 do begin
+;    Cmatrix[i-1,j-1] = self.Cij[i,j,0] + p * self.Cij[i,j,1] + self.Cij[i,j,2] * p * p + TC * self.Cij[i,j,3] + TC*TC * self.Cij[i,j,4]
+;  endfor
+;endfor
+; print, 'hkl a  p', h, k, l, a, p
+; print, 'Cij', self.Cij[*,*,0]
+; print, 'C', Cmatrix
+;S = INVERT(Cmatrix)
+;tmp1 = h*h + k*k + l*l
+;tmp2 = h*h*k*k + k*k*l*l + l*l*h*h
+;Gamma = 1.*tmp2/(tmp1*tmp1)
+; print, 'Gamma', Gamma
+;inv = (S[0,0]-S[0,1]) - 3.*(S[0,0]-S[0,1]-0.5*S[3,3])*Gamma
+; print, '2G' , 1./inv
+;return, 1./inv
+;end
+
+
 function dhklOrtho, a, b, c, h, k, l
 tmp = h*h/(a*a) + k*k/(b*b) + l*l/(c*c) 
 return, 1./sqrt(tmp)
@@ -599,7 +739,7 @@ for i=1,6 do begin
   endfor
 endfor
 S = INVERT(Cmatrix)
-d = self->dhklOrtho(a, b, c, h, k, l)
+d = self->dhklOrtho(a, b, c, h, k, l)  ; 
 l1 = h*d/a
 l2 = k*d/b
 l3 = l*d/c
@@ -646,6 +786,13 @@ endif else begin
 		; print, 'hkl a c p', h, k, l, a, c, p
 		return, self->twoGReussHexa(h, k, l, a, c, p)
 	end
+	'trig': begin
+    a = cell->getCellParValue(0)
+    c = cell->getCellParValue(1)
+    p = cell->getPressure()
+    ; print, 'hkl a c p', h, k, l, a, c, p
+    return, self->twoGReussTrig(h, k, l, a, c, p)
+  end
   'ortho': begin
     a = cell->getCellParValue(0)
     b = cell->getCellParValue(1)
@@ -679,6 +826,16 @@ case self.symmetry of
 		dp = cell->getErrPressure()
 		return, self->errTwoGReussHexa(h, k, l, a, c, p, da, dc, dp)
 	end
+	'trig': begin
+    a = cell->getCellParValue(0)
+    c = cell->getCellParValue(1)
+    da = cell->getCellErrParValue(0)
+    dc = cell->getCellErrParValue(1)
+    p = cell->getPressure()
+    dp = cell->getErrPressure()
+    ; print, 'hkl a c p', h, k, l, a, c, p
+    return, self->errTwoGReussTrig(h, k, l, a, c, p, da, dc, dp)
+  end
   'ortho': begin
     a = cell->getCellParValue(0)
     b = cell->getCellParValue(1)

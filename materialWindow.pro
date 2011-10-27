@@ -162,6 +162,124 @@ WIDGET_CONTROL, input, SET_UVALUE=stash
 WIDGET_CONTROL, input, /REALIZE
 XMANAGER, 'chgElPropCubicAnis', input
 END
+; ********************************* Anisotropic elastic properties (trigonal) dialog **********
+PRO doChgElPropTrigAnis, input, c11St,  c33St,  c12St,  c13St, c14St,  c15St, c44St,  dc11St,  dc33St,  dc12St,  dc13St, dc14St,  dc15St, dc44St,   ddc11St,  ddc33St,  ddc12St,  ddc13St, ddc14St,  ddc15St,  ddc44St
+common materialwindow, material
+WIDGET_CONTROL, c11St, GET_VALUE=c11S
+WIDGET_CONTROL, c12St, GET_VALUE=c12S
+WIDGET_CONTROL, c13St, GET_VALUE=c13S
+WIDGET_CONTROL, c14St, GET_VALUE=c14S
+WIDGET_CONTROL, c15St, GET_VALUE=c15S
+WIDGET_CONTROL, c33St, GET_VALUE=c33S
+WIDGET_CONTROL, c44St, GET_VALUE=c44S
+WIDGET_CONTROL, dc11St, GET_VALUE=dc11S
+WIDGET_CONTROL, dc12St, GET_VALUE=dc12S
+WIDGET_CONTROL, dc13St, GET_VALUE=dc13S
+WIDGET_CONTROL, dc14St, GET_VALUE=dc14S
+WIDGET_CONTROL, dc15St, GET_VALUE=dc15S
+WIDGET_CONTROL, dc33St, GET_VALUE=dc33S
+WIDGET_CONTROL, dc44St, GET_VALUE=dc44S
+WIDGET_CONTROL, ddc11St, GET_VALUE=ddc11S
+WIDGET_CONTROL, ddc12St, GET_VALUE=ddc12S
+WIDGET_CONTROL, ddc13St, GET_VALUE=ddc13S
+WIDGET_CONTROL, ddc14St, GET_VALUE=ddc14S
+WIDGET_CONTROL, ddc15St, GET_VALUE=ddc15S
+WIDGET_CONTROL, ddc33St, GET_VALUE=ddc33S
+WIDGET_CONTROL, ddc44St, GET_VALUE=ddc44S
+c11 = float(c11S)
+c12 = float(c12S)
+c13 = float(c13S)
+c14 = float(c14S)
+c15 = float(c15S)
+c33 = float(c33S)
+c44 = float(c44S)
+dc11 = float(dc11S)
+dc12 = float(dc12S)
+dc13 = float(dc13S)
+dc14 = float(dc14S)
+dc15 = float(dc15S)
+dc33 = float(dc33S)
+dc44 = float(dc44S)
+ddc11 = float(ddc11S)
+ddc12 = float(ddc12S)
+ddc13 = float(ddc13S)
+ddc14 = float(ddc14S)
+ddc15 = float(ddc15S)
+ddc33 = float(ddc33S)
+ddc44 = float(ddc44S)
+material->setAnisPropTrig, c11,  c33,  c12,  c13, c14, c15, c44,  dc11,  dc33,  dc12,  dc13, dc14,  dc15,  dc44,   ddc11,  ddc33,  ddc12,  ddc13, ddc14,  ddc15,  ddc44
+WIDGET_CONTROL, input, /DESTROY
+END
+
+PRO chgElPropTrigAnis_event, ev
+; Get the 'stash' structure.
+WIDGET_CONTROL, ev.TOP, GET_UVALUE=stash
+WIDGET_CONTROL, ev.ID, GET_UVALUE=uval
+CASE ev.id OF
+  stash.input:
+  else: begin
+    CASE uval OF
+    'OK': doChgElPropTrigAnis, stash.input, stash.c11St,  stash.c33St,  stash.c12St,  stash.c13St, stash.c14St,  stash.c15St,  stash.c44St,  stash.dc11St,  stash.dc33St,  stash.dc12St,  stash.dc13St,  stash.dc14St,  stash.dc15St,  stash.dc44St,   stash.ddc11St,  stash.ddc33St,  stash.ddc12St,  stash.ddc13St, stash.ddc14St,  stash.ddc15St,  stash.ddc44St
+    'CANCEL': WIDGET_CONTROL, stash.input, /DESTROY
+    else:
+    ENDCASE
+  endcase
+endcase
+END
+
+PRO chgElPropTrigAnis, base
+common materialwindow, material
+common fonts, titlefont, boldfont, mainfont
+; base GUI
+input = WIDGET_BASE(Title='Anisotropic elastic properties', /COLUMN, /MODAL, GROUP_LEADER=base)
+inputLa = WIDGET_LABEL(input, VALUE='Anisotropic elastic properties', /ALIGN_CENTER, font=titlefont)
+; Material properties
+mat = WIDGET_BASE(input, /COLUMN, FRAME=1)
+; Main properties
+main = WIDGET_BASE(mat, COLUMN=4, /GRID_LAYOUT, FRAME=0)
+dummyLa = WIDGET_LABEL(main, VALUE='', /ALIGN_LEFT)
+c11La = WIDGET_LABEL(main, VALUE='C11', /ALIGN_LEFT)
+c33La = WIDGET_LABEL(main, VALUE='C33', /ALIGN_LEFT)
+c12La = WIDGET_LABEL(main, VALUE='C12', /ALIGN_LEFT)
+c13La = WIDGET_LABEL(main, VALUE='C13', /ALIGN_LEFT)
+c14La = WIDGET_LABEL(main, VALUE='C14', /ALIGN_LEFT)
+c15La = WIDGET_LABEL(main, VALUE='C15', /ALIGN_LEFT)
+c44La = WIDGET_LABEL(main, VALUE='C44', /ALIGN_LEFT)
+dummyLa = WIDGET_LABEL(main, VALUE='Coef0', /ALIGN_LEFT)
+c11St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(1,1,0),/PRINT),2), XSIZE=10, /EDITABLE)
+c33St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(3,3,0),/PRINT),2), XSIZE=10, /EDITABLE)
+c12St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(1,2,0),/PRINT),2), XSIZE=10, /EDITABLE)
+c13St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(1,3,0),/PRINT),2), XSIZE=10, /EDITABLE)
+c14St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(1,4,0),/PRINT),2), XSIZE=10, /EDITABLE)
+c15St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(1,5,0),/PRINT),2), XSIZE=10, /EDITABLE)
+c44St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(4,4,0),/PRINT),2), XSIZE=10, /EDITABLE)
+dummyLa = WIDGET_LABEL(main, VALUE='Coef1', /ALIGN_LEFT)
+dc11St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(1,1,1),/PRINT),2), XSIZE=10, /EDITABLE)
+dc33St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(3,3,1),/PRINT),2), XSIZE=10, /EDITABLE)
+dc12St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(1,2,1),/PRINT),2), XSIZE=10, /EDITABLE)
+dc13St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(1,3,1),/PRINT),2), XSIZE=10, /EDITABLE)
+dc14St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(1,4,1),/PRINT),2), XSIZE=10, /EDITABLE)
+dc15St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(1,5,1),/PRINT),2), XSIZE=10, /EDITABLE)
+dc44St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(4,4,1),/PRINT),2), XSIZE=10, /EDITABLE)
+dummyLa = WIDGET_LABEL(main, VALUE='Coef2', /ALIGN_LEFT)
+ddc11St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(1,1,2),/PRINT),2), XSIZE=10, /EDITABLE)
+ddc33St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(3,3,2),/PRINT),2), XSIZE=10, /EDITABLE)
+ddc12St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(1,2,2),/PRINT),2), XSIZE=10, /EDITABLE)
+ddc13St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(1,3,2),/PRINT),2), XSIZE=10, /EDITABLE)
+ddc14St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(1,4,2),/PRINT),2), XSIZE=10, /EDITABLE)
+ddc15St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(1,5,2),/PRINT),2), XSIZE=10, /EDITABLE)
+ddc44St = WIDGET_TEXT(main, VALUE=STRTRIM(STRING(material->getCij(4,4,2),/PRINT),2), XSIZE=10, /EDITABLE)
+; Buttons
+buttons = WIDGET_BASE(input,/ROW, /ALIGN_CENTER, /GRID_LAYOUT)
+ok = WIDGET_BUTTON(buttons, VALUE='Ok', UVALUE='OK')
+cancel = WIDGET_BUTTON(buttons, VALUE='Cancel', UVALUE='CANCEL')
+; Finishing up
+stash = {input: input, c11St: c11St, c12St: c12St, c13St: c13St, c14St: c14St, c15St: c15St, c33St: c33St, c44St: c44St, dc11St: dc11St, dc12St: dc12St, dc13St: dc13St, dc14St: dc14St, dc15St: dc15St, dc33St: dc33St, dc44St: dc44St, ddc11St: ddc11St, ddc12St: ddc12St, ddc13St: ddc13St, ddc14St: ddc14St, ddc15St: ddc15St, ddc33St: ddc33St, ddc44St: ddc44St}
+WIDGET_CONTROL, input, SET_UVALUE=stash
+WIDGET_CONTROL, input, /REALIZE
+XMANAGER, 'chgElPropTrigAnis', input
+END
+
 
 
 ; ********************************* Anisotropic elastic properties (hexagonal) dialog **********
@@ -422,6 +540,7 @@ endif else begin
 	if (sym eq 'hexa') then chgElPropHexaAnis, base
 	if (sym eq 'cubic') then chgElPropCubicAnis, base
   if (sym eq 'ortho') then chgElPropOrthoAnis, base
+  if (sym eq 'trig') then chgElPropTrigAnis, base
 endelse
 END
 
@@ -446,7 +565,7 @@ END
 
 pro updateElasticChoices, symSt, elasticSt
 symCode = WIDGET_INFO(symSt, /DROPLIST_SELECT)
-if (symCode gt 2) then begin
+if (symCode gt 3) then begin
   WIDGET_CONTROL, elasticSt, SET_DROPLIST_SELECT=0
   WIDGET_CONTROL, elasticSt, sensitive=0
 endif else begin
@@ -491,7 +610,7 @@ voLa = WIDGET_LABEL(main, VALUE='V0', /ALIGN_LEFT)
 koLa = WIDGET_LABEL(main, VALUE='K0', /ALIGN_LEFT)
 dkoLa = WIDGET_LABEL(main, VALUE="K'0", /ALIGN_LEFT)
 nameSt = WIDGET_TEXT(main, VALUE=material->getName(), XSIZE=10, /EDITABLE)
-symList = ["cubic","hexagonal","orthorhombic","","monoclinic"]
+symList = ["cubic","hexagonal","orthorhombic","trigonal","monoclinic"]
 symSt = WIDGET_DROPLIST(main, VALUE=symList)
 select  = fix(material->getSymmetryCode())
 WIDGET_CONTROL, symSt, SET_DROPLIST_SELECT=select
@@ -503,8 +622,8 @@ elastic = WIDGET_BASE(mat, /ROW, FRAME=0)
 elLa = WIDGET_LABEL(elastic, VALUE='Elastic model', /ALIGN_LEFT)
 elList = ["isotropic","anisotropic"]
 elasticSt = WIDGET_DROPLIST(elastic, VALUE=elList)
-; symmetries other than cubic and hexagonal are always isotropic
-if (fix(material->getSymmetryCode()) gt 2) then begin
+; symmetries other than cubic, hexagonal, trigonal and orthorhombic are always isotropic
+if (fix(material->getSymmetryCode()) gt 10) then begin
   WIDGET_CONTROL, elasticSt, SET_DROPLIST_SELECT=0
   WIDGET_CONTROL, elasticSt, sensitive=0
 endif else begin
