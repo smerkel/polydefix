@@ -87,12 +87,12 @@ END
 
 
 function dhklmono, x, A
-  d = 1. / ( x.h*x.h/(A[0]*A[0]*(sin(A[3]))^2) + x.k*x.k/(A[1]*A[1]) + x.l*x.l/(A[2]*A[2]*(sin(A[3]))^2) - 2.*x.h*x.l*cos(A[3])/(A[0]*A[2]*(sin(A[3]))^2) )
+  d = 1. / sqrt(( x.h*x.h/(A[0]*A[0]*(sin(A[3]))^2) + x.k*x.k/(A[1]*A[1]) + x.l*x.l/(A[2]*A[2]*(sin(A[3]))^2) - 2.*x.h*x.l*cos(A[3])/(A[0]*A[2]*(sin(A[3]))^2) ))
   return, d
 end
 
 function dhklortho, x, A
-  d = 1. / ( x.h*x.h/(A[0]*A[0]) + x.k*x.k/(A[1]*A[1]) + x.l*x.l/(A[2]*A[2]) )
+  d = 1. / sqrt( ( x.h*x.h/(A[0]*A[0]) + x.k*x.k/(A[1]*A[1]) + x.l*x.l/(A[2]*A[2]) ) )
   return, d
 end
 

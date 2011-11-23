@@ -102,7 +102,7 @@ endif else if (self.symmetry eq 'ortho') then begin
     ((*self.cell)[0,0]*(*self.cell)[2,0]*(*self.cell)[1,1])^2 )
   return, [v,dv]
 endif else if (self.symmetry eq 'mono') then begin
-  v = (*self.cell)[0,0]*(*self.cell)[1,0]*(*self.cell)[2,0]
+  v = (*self.cell)[0,0]*(*self.cell)[1,0]*(*self.cell)[2,0]*sin((*self.cell)[3,0])
   dv = sqrt( ((*self.cell)[0,0]*(*self.cell)[1,0]*sin((*self.cell)[3,0])*(*self.cell)[2,1])^2 + $
     ((*self.cell)[1,0]*(*self.cell)[2,0]*sin((*self.cell)[3,0])*(*self.cell)[0,1])^2 + $
     ((*self.cell)[0,0]*(*self.cell)[2,0]*sin((*self.cell)[3,0])*(*self.cell)[1,1])^2 + $
@@ -244,7 +244,7 @@ endif else if (self.symmetry eq 'mono') then begin
   tmp = h*h/((*self.cell)[0,0]*sin((*self.cell)[3,0]))^2 + k*k/((*self.cell)[1,0])^2 + l*l/((*self.cell)[2,0]*sin((*self.cell)[3,0]))^2 - 2.*h*l*cos((*self.cell)[3,0])/((*self.cell)[0,0]*(*self.cell)[2,0]*(sin((*self.cell)[3,0]))^2)
   return, 1./sqrt(tmp)
 endif else if (self.symmetry eq 'ortho') then begin
-  tmp = h*h/((*self.cell)[0,0])^2 + k*k/((*self.cell)[1,0])^2 + l*l/((*self.cell)[2,0])^2 
+  tmp = h*h/(((*self.cell)[0,0])^2) + k*k/(((*self.cell)[1,0])^2) + l*l/(((*self.cell)[2,0])^2) 
   return, 1./sqrt(tmp)
 endif  else if (self.symmetry eq 'cubic') then begin
 	tmp = (h*h+k*k+l*l)/((*self.cell)[0,0]*(*self.cell)[0,0])

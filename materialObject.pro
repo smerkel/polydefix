@@ -347,7 +347,7 @@ if (latticestrain->getSet() eq 1) then begin
     for i=0,nuse-1 do begin
       x[i] = {plane, h[i], k[i], l[i]}
     endfor
-    a = [3., 3., 3.]
+    a = [5., 10., 6.]
     fit = MPFITFUN('dhklortho', x, d, dd, a, perror=perror, YFIT=dfit, /quiet)
     cell->setFit, [fit[0], perror[0], fit[1], perror[1], fit[2], perror[2]]
     txt = "\thkl    dm       dc      diff\n"
