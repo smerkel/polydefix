@@ -726,12 +726,12 @@ end
 ;end
 
 
-function dhklOrtho, a, b, c, h, k, l
+function dhklOrtho1, a, b, c, h, k, l
 tmp = h*h/(a*a) + k*k/(b*b) + l*l/(c*c) 
 return, 1./sqrt(tmp)
 end
 
-function materialObject::twoGReussMono, h, k, l, a, b, c, p
+function materialObject::twoGReussOrtho, h, k, l, a, b, c, p
 Cmatrix = fltarr(6,6)
 for i=1,6 do begin
   for j=1,6 do begin
@@ -739,7 +739,7 @@ for i=1,6 do begin
   endfor
 endfor
 S = INVERT(Cmatrix)
-d = self->dhklOrtho(a, b, c, h, k, l)  ; 
+d = self->dhklOrtho1(a, b, c, h, k, l)  ; 
 l1 = h*d/a
 l2 = k*d/b
 l3 = l*d/c
@@ -750,14 +750,14 @@ inv = -(S[0,1]+S[0,2]+S[1,2]) + l1*l1*(S[1,2]-S[0,0]) + $
 return, 2./inv
 end
 
-function materialObject::errTwoGReussMono, h, k, l, a, b, c, p, da, db, dc, dp
-d1 = (self->twoGReussMono(h, k, l, 1.01*a, b, c, p) - self->twoGReussMono(h, k, l, 0.99*a, b, c, p)) $
+function materialObject::errTwoGReussOrtho, h, k, l, a, b, c, p, da, db, dc, dp
+d1 = (self->twoGReussOrtho(h, k, l, 1.01*a, b, c, p) - self->twoGReussOrtho(h, k, l, 0.99*a, b, c, p)) $
       / (0.02 * a)
-d2 = (self->twoGReussMono(h, k, l, a, 1.01*b, c, p) - self->twoGReussMono(h, k, l, a, 0.99*b, c, p)) $
+d2 = (self->twoGReussOrtho(h, k, l, a, 1.01*b, c, p) - self->twoGReussOrtho(h, k, l, a, 0.99*b, c, p)) $
       / (0.02 * b) 
-d3 = (self->twoGReussMono(h, k, l, a, b, 1.01*c, p) - self->twoGReussMono(h, k, l, a, b, 0.99*c, p)) $
+d3 = (self->twoGReussOrtho(h, k, l, a, b, 1.01*c, p) - self->twoGReussOrtho(h, k, l, a, b, 0.99*c, p)) $
       / (0.02 * c)
-d4 = (self->twoGReussMono(h, k, l, a, b, c, 1.01*p) - self->twoGReussMono(h, k, l, a, b, c, 0.99*p)) $
+d4 = (self->twoGReussOrtho(h, k, l, a, b, c, 1.01*p) - self->twoGReussOrtho(h, k, l, a, b, c, 0.99*p)) $
       / (0.02 * p)
       
 err = sqrt( (d1*da)^2 + (d2*db)^2 + (d3*dc)^2 + (d4*dp)^2 )
@@ -798,7 +798,7 @@ endif else begin
     b = cell->getCellParValue(1)
     c = cell->getCellParValue(2)
     p = cell->getPressure()
-    ; print, 'hkl a c p', h, k, l, a, c, p
+    ; print, 'hkl a c p', h, k, l, a, b, c, p
     return, self->twoGReussOrtho(h, k, l, a, b, c, p)
   end
 	else: return, 0.
@@ -845,7 +845,7 @@ case self.symmetry of
     dc = cell->getCellErrParValue(2)
     p = cell->getPressure()
     dp = cell->getErrPressure()
-    return, self->errTwoGReussHexa(h, k, l, a, b, c, p, da, db, dc, dp)
+    return, self->errTwoGReussOrtho(h, k, l, a, b, c, p, da, db, dc, dp)
   end
 	'mono': return, 0
 	else: return, 0
