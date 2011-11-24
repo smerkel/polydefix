@@ -643,7 +643,7 @@ function materialObject::twoGReussHexa, h, k, l, a, c, p
 Cmatrix = fltarr(6,6)
 for i=1,6 do begin
 	for j=1,6 do begin
-		Cmatrix[i-1,j-1] = self.Cij[i,j,0] + p * self.Cij[i,j,1] + self.Cij[i,j,2]
+		Cmatrix[i-1,j-1] = self.Cij[i,j,0] + p * self.Cij[i,j,1] + p * p * self.Cij[i,j,2]
 	endfor
 endfor
 ; print, 'hkl a c p', h, k, l, a, c, p
@@ -725,26 +725,27 @@ end
 ;return, 1./inv
 ;end
 
-
-function dhklOrtho1, a, b, c, h, k, l
-tmp = h*h/(a*a) + k*k/(b*b) + l*l/(c*c) 
-return, 1./sqrt(tmp)
-end
+; N. Hilairet 24/11/11 materialObject::twoGReussOrtho does not work with this function aside
+;function dhklOrtho1, a, b, c, h, k, l
+;tmp = h*h/(a*a) + k*k/(b*b) + l*l/(c*c) 
+;return, 1./sqrt(tmp)
+;end
 
 function materialObject::twoGReussOrtho, h, k, l, a, b, c, p
 Cmatrix = fltarr(6,6)
 for i=1,6 do begin
   for j=1,6 do begin
-    Cmatrix[i-1,j-1] = self.Cij[i,j,0] + p * self.Cij[i,j,1] + self.Cij[i,j,2]
+    Cmatrix[i-1,j-1] = self.Cij[i,j,0] + p * self.Cij[i,j,1] + p * p * self.Cij[i,j,2]
   endfor
 endfor
 S = INVERT(Cmatrix)
-d = self->dhklOrtho1(a, b, c, h, k, l)  ; 
+;d = self->dhklOrtho1(a, b, c, h, k, l)   
+d = 1/( sqrt(h*h/(a*a) + k*k/(b*b) + l*l/(c*c)) )
 l1 = h*d/a
 l2 = k*d/b
 l3 = l*d/c
 inv = -(S[0,1]+S[0,2]+S[1,2]) + l1*l1*(S[1,2]-S[0,0]) + $
-  l2*l2*(S[1,2]-S[1,1]) + l2*l2*(S[0,1]-S[2,2]) + $
+  l2*l2*(S[1,2]-S[1,1]) + l3*l3*(S[0,1]-S[2,2]) + $
   3. * ( l1*l1*l1*l1*S[0,0] + l2*l2*l2*l2*S[1,1] + l3*l3*l3*l3*S[2,2] + $
       l1*l1*l2*l2*(2.*S[0,1]+S[5,5]) + l2*l2*l3*l3*(2.*S[1,2]+S[3,3]) + l1*l1*l3*l3*(2.*S[0,2]+S[4,4]) )
 return, 2./inv
