@@ -322,7 +322,7 @@ txt = ""
 if (self.symmetry eq 'hexa') then $
 	txt += fltformatA((*self.cell)[0,0]) + STRING(9B) + fltformatA((*self.cell)[0,1]) + STRING(9B) + fltformatA((*self.cell)[1,0]) +  STRING(9B)+ fltformatA((*self.cell)[1,1]) + STRING(9B) + fltformatA(V[0]) + STRING(9B) + fltformatA(V[1]) + STRING(9B) +  fltformatA(self.P) + STRING(9B) + fltformatA(self.dp)
 if (self.symmetry eq 'trig') then $
-  txt += fltformatA((*self.cell)[0,0]) + STRING(9B) + fltformatA((*self.cell)[0,1]) + STRING(9B) + fltformatA((*self.cell)[1,0]) +  STRING(9B)+ fltformatA((*self.cell)[1,1]) + STRING(9B) + fltformatB(V[0]) + STRING(9B) + fltformatB(V[1]) + STRING(9B) + STRING(9B) +  fltformatB(self.T) +  fltformatB(self.P) + STRING(9B) + fltformatB(self.dp)
+  txt += fltformatA((*self.cell)[0,0]) + STRING(9B) + fltformatA((*self.cell)[0,1]) + STRING(9B) + fltformatA((*self.cell)[1,0]) +  STRING(9B)+ fltformatA((*self.cell)[1,1]) + STRING(9B) + fltformatA(V[0]) + STRING(9B) + fltformatA(V[1]) + STRING(9B) + fltformatA(self.T) +  fltformatA(self.P) + STRING(9B) + fltformatA(self.dp)
 if (self.symmetry eq 'ortho') then $
   txt += fltformatA((*self.cell)[0,0]) + STRING(9B) + fltformatA((*self.cell)[0,1]) + STRING(9B) + fltformatA((*self.cell)[1,0]) +  STRING(9B)+ fltformatA((*self.cell)[1,1]) + STRING(9B)+ fltformatA((*self.cell)[2,0]) +  STRING(9B)+ fltformatA((*self.cell)[2,1]) + STRING(9B) + fltformatA(V[0]) + STRING(9B) + fltformatA(V[1]) + STRING(9B) +  fltformatA(self.P) + STRING(9B) + fltformatA(self.dp)
 if (self.symmetry eq 'mono') then $
