@@ -129,6 +129,65 @@ endfor
 self.elasticmodel=1
 end
 
+pro materialObject::setAnisPropMono, c11, c22, c33,  c12,  c13, c15, c23, c25, c35, c44, c46, c55, c66, $
+                                   dc11, dc22, dc33,  dc12,  dc13, dc15, dc23, dc25, dc35, dc44, dc46, dc55, dc66, $
+                                 ddc11, ddc22, ddc33,  ddc12,  ddc13, ddc15, ddc23, ddc25, ddc35, ddc44, ddc46, ddc55, ddc66
+for i=0,6 do begin
+  for j=0,6 do begin
+    for k=0,2 do begin
+      self.Cij[i,j,k] = 0.0
+    endfor
+  endfor
+endfor
+self.Cij[1,1,0] = c11
+self.Cij[2,2,0] = c22
+self.Cij[3,3,0] = c33
+self.Cij[1,2,0] = c12
+self.Cij[1,3,0] = c13
+self.Cij[1,5,0] = c15
+self.Cij[2,3,0] = c23
+self.Cij[2,5,0] = c25
+self.Cij[3,5,0] = c35
+self.Cij[4,4,0] = c44
+self.Cij[4,6,0] = c46
+self.Cij[5,5,0] = c55
+self.Cij[6,6,0] = c66
+self.Cij[1,1,1] = dc11
+self.Cij[2,2,1] = dc22
+self.Cij[3,3,1] = dc33
+self.Cij[1,2,1] = dc12
+self.Cij[1,3,1] = dc13
+self.Cij[1,5,1] = dc15
+self.Cij[2,3,1] = dc23
+self.Cij[2,5,1] = dc25
+self.Cij[3,5,1] = dc35
+self.Cij[4,4,1] = dc44
+self.Cij[4,6,1] = dc46
+self.Cij[5,5,1] = dc55
+self.Cij[6,6,1] = dc66
+self.Cij[1,1,2] = ddc11
+self.Cij[2,2,2] = ddc22
+self.Cij[3,3,2] = ddc33
+self.Cij[1,2,2] = ddc12
+self.Cij[1,3,2] = ddc13
+self.Cij[1,5,2] = ddc15
+self.Cij[2,3,2] = ddc23
+self.Cij[2,5,2] = ddc25
+self.Cij[3,5,2] = ddc35
+self.Cij[4,4,2] = ddc44
+self.Cij[4,6,2] = ddc46
+self.Cij[5,5,2] = ddc55
+self.Cij[6,6,2] = ddc66
+for i=1,6 do begin
+  for j=1,i-1 do begin
+    for k=0,2 do begin
+      self.Cij[i,j,k] = self.Cij[j,i,k] 
+    endfor
+  endfor
+endfor
+self.elasticmodel=1
+end
+
 pro materialObject::setAnisPropHexa, c11,  c33,  c12,  c13,  c44,  dc11,  dc33,  dc12,  dc13,  dc44,   ddc11,  ddc33,  ddc12,  ddc13,  ddc44
 for i=0,6 do begin
 	for j=0,6 do begin
@@ -523,6 +582,20 @@ endif else begin
     str += "\tC44 = " + STRTRIM(STRING(self.Cij[4,4,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[4,4,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[4,4,2],/PRINT),2) + "*P*P\n"
     str += "\tC55 = " + STRTRIM(STRING(self.Cij[5,5,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[5,5,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[5,5,2],/PRINT),2) + "*P*P\n"
     str += "\tC66 = " + STRTRIM(STRING(self.Cij[6,6,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[6,6,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[6,6,2],/PRINT),2) + "*P*P\n"
+  endif else if (self.symmetry eq 'mono') then begin
+    str += "\tC11 = " + STRTRIM(STRING(self.Cij[1,1,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,1,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,1,2],/PRINT),2) + "*P*P\n"
+    str += "\tC22 = " + STRTRIM(STRING(self.Cij[2,2,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[2,2,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[2,2,2],/PRINT),2) + "*P*P\n"
+    str += "\tC33 = " + STRTRIM(STRING(self.Cij[3,3,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[3,3,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[3,3,2],/PRINT),2) + "*P*P\n"
+    str += "\tC12 = " + STRTRIM(STRING(self.Cij[1,2,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,2,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,2,2],/PRINT),2) + "*P*P\n"
+    str += "\tC13 = " + STRTRIM(STRING(self.Cij[1,3,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,3,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,3,2],/PRINT),2) + "*P*P\n"
+    str += "\tC15 = " + STRTRIM(STRING(self.Cij[1,5,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,5,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,5,2],/PRINT),2) + "*P*P\n"
+    str += "\tC23 = " + STRTRIM(STRING(self.Cij[2,3,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[2,3,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[2,3,2],/PRINT),2) + "*P*P\n"
+    str += "\tC25 = " + STRTRIM(STRING(self.Cij[2,5,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[2,5,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[2,5,2],/PRINT),2) + "*P*P\n"
+    str += "\tC35 = " + STRTRIM(STRING(self.Cij[3,5,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[3,5,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[3,5,2],/PRINT),2) + "*P*P\n"
+    str += "\tC44 = " + STRTRIM(STRING(self.Cij[4,4,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[4,4,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[4,4,2],/PRINT),2) + "*P*P\n"
+    str += "\tC46 = " + STRTRIM(STRING(self.Cij[4,6,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[4,6,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[4,6,2],/PRINT),2) + "*P*P\n"
+    str += "\tC55 = " + STRTRIM(STRING(self.Cij[5,5,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[5,5,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[5,5,2],/PRINT),2) + "*P*P\n"
+    str += "\tC66 = " + STRTRIM(STRING(self.Cij[6,6,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[6,6,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[6,6,2],/PRINT),2) + "*P*P\n"
   endif else if (self.symmetry eq 'cubic') then begin
 		str += "\tC11 = " + STRTRIM(STRING(self.Cij[1,1,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,1,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,1,2],/PRINT),2) + "*P*P\n"
 		str += "\tC12 = " + STRTRIM(STRING(self.Cij[1,2,0],/PRINT),2) + " + " + STRTRIM(STRING(self.Cij[1,2,1],/PRINT),2) + "*P + " + STRTRIM(STRING(self.Cij[1,2,2],/PRINT),2) + "*P*P\n"
@@ -765,11 +838,49 @@ err = sqrt( (d1*da)^2 + (d2*db)^2 + (d3*dc)^2 + (d4*dp)^2 )
 return, err
 end
 
+function materialObject::twoGReussMono, h, k, l, a, b, c, beta, p
+Cmatrix = fltarr(6,6)
+for i=1,6 do begin
+  for j=1,6 do begin
+    Cmatrix[i-1,j-1] = self.Cij[i,j,0] + p * self.Cij[i,j,1] + p * p * self.Cij[i,j,2]
+  endfor
+endfor
+S = INVERT(Cmatrix)
+;d = self->dhklOrtho1(a, b, c, h, k, l)   
+d = 1. / (sqrt( h*h/(a*a*(sin(beta))^2) + k*k/(b*b) + l*l/(c*c*(sin(beta))^2) - 2.*h*l*cos(beta)/(a*c*(sin(beta))^2) ))
+l1 = h*d/a
+l2 = k*d/b
+l3 = (a*l-h*c)*(cos(beta))*d/(a*c*(sin(beta)))
+
+inv =  S[0,0]*(3*(l1^4)-l1^2) + S[1,1]*(3*(l2^4)-l2^2) + S[2,2]*(3*(l3^4)-l3^2) $
+          + S[0,1]*(6*(l1^2)*(l2^2) - l1^2 - l2^2) + S[0,2]*(6*(l1^2)*(l3^2) - l1^2 - l3^2) + S[0,2]*(6*(l2^2)*(l3^2) - l2^2 - l3^2) $
+          + l1*l3*( S[0,4]*(6*(l1^2) -1) + S[1,4]*(6*(l2^2) - 1)+ S[2,4]*(6*(l3^2) -1) ) $ 
+          +6*S[3,5]*l1*(l2^2)*l3 +  3*( S[3,3]*(l2^2)*(l3^2)+S[4,4]*(l3^2)*(l1^2)+S[5,5]*(l1^2)*(l2^2) )
+
+return, 2./inv
+end
+
+function materialObject::errTwoGReussMono, h, k, l, a, b, c, beta, p, da, db, dc, dbeta, dp
+d1 = (self->twoGReussMono(h, k, l, 1.01*a, b, c, beta, p) - self->twoGReussMono(h, k, l, 0.99*a, b, c, beta, p)) $
+      / (0.02 * a)
+d2 = (self->twoGReussMono(h, k, l, a, 1.01*b, c, beta, p) - self->twoGReussMono(h, k, l, a, 0.99*b, c, beta, p)) $
+      / (0.02 * b) 
+d3 = (self->twoGReussMono(h, k, l, a, b, 1.01*c, beta, p) - self->twoGReussMono(h, k, l, a, b, 0.99*c, beta, p)) $
+      / (0.02 * c)
+d4 = (self->twoGReussMono(h, k, l, a, b, c, 1.01*beta, p) - self->twoGReussMono(h, k, l, a, b, c, 0.99*beta, p)) $
+      / (0.02 * beta)
+d5 = (self->twoGReussMono(h, k, l, a, b, c, beta, 1.01*p) - self->twoGReussMono(h, k, l, a, b, c, beta, 0.99*p)) $
+      / (0.02 * p)
+      
+err = sqrt( (d1*da)^2 + (d2*db)^2 + (d3*dc)^2 + (d4*dbeta)^2 + (d5*dp)^2)
+return, err
+end
+
 
 ; returns an array of string with the name of the unit cell parameters
 ; e.g. a for cubic, a and c for hexagonal...
 function materialObject::getTwoG, h, k, l, cell
-if ((self.elasticmodel eq 0) or (self.symmetry eq 'mono')) then begin
+if (self.elasticmodel eq 0)  then begin 
   p = cell->getPressure()
   twoG = 2.*(self.iG[0] + p*self.iG[1] + p*p*self.iG[2])
   return, twoG
@@ -802,6 +913,15 @@ endif else begin
     ; print, 'hkl a c p', h, k, l, a, b, c, p
     return, self->twoGReussOrtho(h, k, l, a, b, c, p)
   end
+  'mono': begin
+    a = cell->getCellParValue(0)
+    b = cell->getCellParValue(1)
+    c = cell->getCellParValue(2)
+    beta = cell->getCellParValue(3)
+    p = cell->getPressure()
+    ; print, 'hkl a c p', h, k, l, a, b, c, p
+    return, self->twoGReussMono(h, k, l, a, b, c, beta, p)
+  end
 	else: return, 0.
   endcase
 endelse
@@ -809,7 +929,7 @@ return, 0.
 end
 
 function materialObject::getErrTwoG, h, k, l, cell
-if ((self.elasticmodel eq 0) or (self.symmetry eq 'mono')) then return, 0.
+if (self.elasticmodel eq 0) then return, 0.
 case self.symmetry of
 	'cubic': begin
 		a = cell->getCellParValue(0)
@@ -848,7 +968,19 @@ case self.symmetry of
     dp = cell->getErrPressure()
     return, self->errTwoGReussOrtho(h, k, l, a, b, c, p, da, db, dc, dp)
   end
-	'mono': return, 0
+  'mono': begin
+    a = cell->getCellParValue(0)
+    b = cell->getCellParValue(1)
+    c = cell->getCellParValue(2)
+    beta = cell->getCellParValue(3)
+    da = cell->getCellErrParValue(0)
+    db = cell->getCellErrParValue(1)
+    dc = cell->getCellErrParValue(2)
+    dbeta=cell->getCellErrParValue(3)
+    p = cell->getPressure()
+    dp = cell->getErrPressure()
+    return, self->errTwoGReussMono(h, k, l, a, b, c, beta, p, da, db, dc, dbeta, dp)
+  end
 	else: return, 0
 endcase
 return, 0
