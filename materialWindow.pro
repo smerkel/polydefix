@@ -749,7 +749,7 @@ END
 
 pro updateElasticChoices, symSt, elasticSt
 symCode = WIDGET_INFO(symSt, /DROPLIST_SELECT)
-if (symCode gt 4) then begin
+if (symCode gt 10) then begin
   WIDGET_CONTROL, elasticSt, SET_DROPLIST_SELECT=0
   WIDGET_CONTROL, elasticSt, sensitive=0
 endif else begin

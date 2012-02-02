@@ -611,7 +611,7 @@ case self.symmetry of
 	'hexa': return, "#" + STRING(9B) + "a" + STRING(9B) + "da" + STRING(9B) + "c" + STRING(9B) + "dc"  + STRING(9B) + "V" + STRING(9B) + "dV" + STRING(9B) + "P" + STRING(9B) + "dP"
   'ortho': return, "#" + STRING(9B) + "a" + STRING(9B) + "da" + STRING(9B) + "b" + STRING(9B) + "db"  + STRING(9B) + "c" + STRING(9B) + "dc"  + STRING(9B) + "V" + STRING(9B) + "dV" + STRING(9B) + "P" + STRING(9B) + "dP"
   'trig': return, "#" + STRING(9B) + "a" + STRING(9B) + "da" + STRING(9B) + "c" + STRING(9B) + "dc"  + STRING(9B) + "V" + STRING(9B) + "dV" + STRING(9B) + "P" + STRING(9B) + "dP"
-  'mono': return, "#" + STRING(9B) + "a" + STRING(9B) + "da" + STRING(9B) + "b" + STRING(9B) + "db"  + STRING(9B) + "c" + STRING(9B) + "dc" + STRING(9B) + "beta" + STRING(9B) + "dbeta"   + STRING(9B) + "V" + STRING(9B) + "dV" + STRING(9B) + "P" + STRING(9B) + "dP"
+  'mono': return, "#" + STRING(9B) + "a" + STRING(9B) + "da" + STRING(9B) + "b" + STRING(9B) + "db"  + STRING(9B) + "c" + STRING(9B) + "dc" + STRING(9B) + "beta" + STRING(9B) + "dbeta" + STRING(9B) + "V" + STRING(9B) + "dV" + STRING(9B) + "P" + STRING(9B) + "dP"
 	else: return, 10
 endcase
 return, 10
