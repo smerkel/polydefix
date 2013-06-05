@@ -35,7 +35,7 @@ infobase =  WIDGET_BASE(basedialog,/COLUMN)
 la = WIDGET_LABEL(infobase, VALUE='Polydefix', /ALIGN_LEFT, font=titlefont)
 la = WIDGET_LABEL(infobase, VALUE='', /ALIGN_LEFT)
 la = WIDGET_LABEL(infobase, VALUE='Polydefix, Polycrystal Deformation using X-rays', /ALIGN_LEFT)
-la = WIDGET_LABEL(infobase, VALUE='Build 10, 27/01/2012', /ALIGN_LEFT)
+la = WIDGET_LABEL(infobase, VALUE='Build 11, using IDL8.2.2 05/06/2012', /ALIGN_LEFT)
 la = WIDGET_LABEL(infobase, VALUE='Copyright S. Merkel, Universite Lille 1, France', /ALIGN_LEFT)
 la = WIDGET_LABEL(infobase, VALUE='http://merkel.ZoneO.net/Polydefix/', /ALIGN_LEFT)
 la = WIDGET_LABEL(infobase, VALUE='', /ALIGN_LEFT)
@@ -436,6 +436,7 @@ CASE ev.id OF
 		'FITSTRESS': fitStressWindow, stash.base
 		'WAVE': chgWaveLength, stash.base, stash.waveSt, stash.log
 		'DIFFRINTENSITIES': diffIntensityWindow, stash.base
+		'PKWIDTHS': diffFWHMWindow, stash.base
 		'INTVSIMAGE': diffIntensityWindow2, stash.base
 		'ABOUT': aboutWindow, stash.base
 		'NOTAVAILABLE': tmp = DIALOG_MESSAGE("This function is not implemented yet!", /ERROR)
@@ -480,6 +481,9 @@ fit_bttn4 = WIDGET_BUTTON(fit_menu, VALUE='Stresses', UVALUE='FITSTRESS')
 texture_menu = WIDGET_BUTTON(bar, VALUE='Texture', /MENU)
 texture_bttn1 = WIDGET_BUTTON(texture_menu, VALUE='Diffraction intensities', UVALUE='DIFFRINTENSITIES')
 texture_bttn2 = WIDGET_BUTTON(texture_menu, VALUE='Intensity vs image', UVALUE='INTVSIMAGE')
+; Peak widths menu
+pkwidth_menu = WIDGET_BUTTON(bar, VALUE='Peaks widths', /MENU)
+pkwidth_bttn1 = WIDGET_BUTTON(pkwidth_menu, VALUE='Diffraction peak widths', UVALUE='PKWIDTHS')
 ; About menu 
 about_menu = WIDGET_BUTTON(bar, VALUE='About...', /MENU, /ALIGN_RIGHT) 
 about_bttn1 = WIDGET_BUTTON(about_menu, VALUE='About this program', UVALUE='ABOUT')
