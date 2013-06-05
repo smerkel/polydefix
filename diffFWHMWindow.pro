@@ -21,7 +21,7 @@
 ; *******************************************************************
 
 ; ***************************************************************************
-; This window is copied/adapted from diffIntensitywindow and 
+; This window is copied/adapted from diffIntensitywindow
 ; It is used when plotting peak widths against diffraction azimut 
 ; for selected diffraction number(s) and peak(s)
 ; Added 05/06/2013 N. Hilairet 

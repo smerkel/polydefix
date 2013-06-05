@@ -237,6 +237,17 @@ if j eq (-1) then return, !VALUES.F_NAN
 return, intensities[j]
 end
 
+; Returns half widths of peak number i at one angle. 
+; Added 05/06/2013 N Hilairet
+function FitPatternObject::getPeakWidthAtAngle, i, angle
+  index = self->findPeak(i)
+  angles = (*self.subpatterns)(index[0])->getDelta(index[1])
+  peakwidths = (*self.subpatterns)(index[0])->getHalfWidth(index[1])
+  j = WHERE(angles eq angle)
+  if j eq (-1) then return, !VALUES.F_NAN
+  return, peakwidths[j]
+end
+
 ; Returns d-spacings for peak number i
 ; Parameter: wavelength
 function FitPatternObject::getDSpacing, i, wavelength

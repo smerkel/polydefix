@@ -511,6 +511,36 @@ endfor
 return, intensity
 end
 
+; Returns half widths of peaks.
+; Added 05/06/2013 N Hilairet
+function experimentObject::getPeakWidthAtAngle, angle, peak
+  nPattern = N_ELEMENTS(*self.filelist)
+  ; print, 'Want data for angle ', index
+  peakwidths = fltarr(nPattern)
+  for i=0, (nPattern-1) do begin
+    if ((*self.expdataset)[i] eq 0) then begin
+      (*self.expdata)[i] = OBJ_NEW('FitPatternObject')
+      (*self.expdataset)[i] = 1
+      fileindex = intformat(i,self.digits)
+      filename = strtrim(self.directory) + self->getFileName(i) + ".fit"
+      ; print, 'reading data from ' + filename
+      if (FILE_TEST(filename) eq 1) then begin
+        openr, lun, filename, /get_lun
+        a = ((*self.expdata)[i])->readFromAscii(lun)
+        free_lun, lun
+      endif
+      ;print, 'Read from ascii, number of peaks: ', fitdata->getNPeaks();
+      ; return, ((*self.expdata)[i])
+    endif
+    if ((*self.expdataset)[i] ne 0) then begin
+      ; read width for the peak and the angle chosen
+      tt = (self->getExperimentalData(i))->getPeakWidthAtAngle(peak,angle)
+      peakwidths[i]=tt
+    endif
+  endfor
+  return,  peakwidths
+end
+
 function experimentObject::latticeStrainFileIndex, index
 return, self->latticeStrain((*self.fileindex)[index])
 end
