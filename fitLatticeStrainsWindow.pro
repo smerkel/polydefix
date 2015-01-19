@@ -70,9 +70,16 @@ pro refineQTxt, log
 common experimentwindow, set, experiment
 n = experiment->getNFitFiles()
 logit, log, "Starting lattice strains refinements"
-for i=0,n-1 do begin
-	logit, log, experiment->summaryQ(i)
-endfor
+outP = experiment->getOutputP()
+if (outP eq 0) then begin
+	for i=0,n-1 do begin
+		logit, log, experiment->summaryQnoP(i)
+	endfor
+endif else begin
+	for i=0,n-1 do begin
+		logit, log, experiment->summaryQ(i)
+	endfor
+endelse
 logit, log, "Finished..."
 end
 
@@ -90,7 +97,12 @@ if (result ne '') then begin
 	progressBar = Obj_New("SHOWPROGRESS", message='Calculating, please wait...')
 	progressBar->Start
 	openw, lun, result, /get_lun
-	text = experiment->summaryQCSVAll(progressBar)
+	outP = experiment->getOutputP()
+	if (outP eq 0) then begin
+		text = experiment->summaryQCSVAllnoP(progressBar)
+	endif else begin
+		text = experiment->summaryQCSVAll(progressBar)
+	endelse
 	printascii, lun, text
 	free_lun, lun
 	progressBar->Destroy
@@ -98,20 +110,30 @@ if (result ne '') then begin
 endif
 end
 
+pro switchOutputP, outp
+common experimentwindow, set, experiment
+experiment->setOutputP, outp
+end
+
 pro fitLatticeStrainsWindow_event, ev
 ; Get the 'stash' structure.
 WIDGET_CONTROL, ev.TOP, GET_UVALUE=stash
 WIDGET_CONTROL, ev.ID, GET_UVALUE=uval
+
 CASE ev.id OF
 	stash.input:
 	else: begin
 		CASE uval OF
 		'REFINE': refineQTxt, stash.log
 		'ASCII': exportRefineQCSV, stash.log
+		'OUTP' : BEGIN
+			  widget_control, stash.outputP, GET_VALUE=outsel
+			  switchOutputP, outsel
+			 END
 		'PLOTQ': BEGIN
 			WIDGET_CONTROL, stash.plotwhatQ, GET_VALUE=selected
 			plotQ, stash.log, stash.base, selected
-		END
+			 END
 		'DONE': WIDGET_CONTROL, stash.input, /DESTROY
 		else:
 		ENDCASE
@@ -131,6 +153,14 @@ fit = WIDGET_BASE(input, /ROW, FRAME=1)
 buttons1 = WIDGET_BASE(fit,/COLUMN, /ALIGN_CENTER)
 refine = WIDGET_BUTTON(buttons1, VALUE='Show details', UVALUE='REFINE')
 export = WIDGET_BUTTON(buttons1, VALUE='Export to ASCII', UVALUE='ASCII')
+;
+; switch on/off output of pressure along with lattice strains (added 16/01/15 N. Hilairet) 
+showP = experiment->getOutputP()
+button1b = WIDGET_BASE(buttons1, /COLUMN, FRAME=1)
+outputPLa = WIDGET_LABEL(button1b, VALUE='Output P?')
+values = ['No', 'Yes']
+outputP = CW_BGROUP(button1b, values, /ROW, /EXCLUSIVE, SET_VALUE = showP, UVALUE='OUTP')
+;
 plotQ = WIDGET_BASE(buttons1,/COLUMN, /ALIGN_CENTER, /FRAME, XSIZE = 100)
 values = experiment->getPeakList(/used)
 plotwhatQ = CW_BGROUP(plotQ, values, /COLUMN, /NONEXCLUSIVE, LABEL_TOP='Q(hkl)', UVALUE='NOTHING')
@@ -140,7 +170,7 @@ log = WIDGET_TEXT(fit, XSIZE=75, YSIZE=30, /ALIGN_CENTER, /EDITABLE, /WRAP, /SCR
 ; buttons2
 buttons2 = WIDGET_BASE(input,/ROW, /ALIGN_CENTER, /GRID_LAYOUT)
 close = WIDGET_BUTTON(buttons2, VALUE='Close window', UVALUE='DONE')
-stash = {base: base, input: input, log: log, plotwhatQ:plotwhatQ}
+stash = {base: base, input: input, log: log, plotwhatQ:plotwhatQ, outputP:outputP}
 WIDGET_CONTROL, input, SET_UVALUE=stash
 WIDGET_CONTROL, input, /REALIZE
 XMANAGER, 'fitLatticeStrainsWindow', input

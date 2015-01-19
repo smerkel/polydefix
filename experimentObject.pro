@@ -51,7 +51,7 @@
 
 
 PRO experimentObject__DEFINE 
-	struct = { experimentObject, tmp: 0, directory:'', base:'', first:0, last:0, digits:3, wavelength:0.0, materialSet:0, material: PTR_NEW(), peaksSet:0, nhkl:0, fitoffset:0, offset: 0., fitcenter:0 , usepeak: PTR_NEW(), h:PTR_NEW(), k:PTR_NEW(), l:PTR_NEW(), fitstrainsset: PTR_NEW(), fitstrains: PTR_NEW(), filelistset: 0, filelist: PTR_NEW(), fileindex: PTR_NEW(), expdata: PTR_NEW(), expdataset: PTR_NEW()}
+	struct = { experimentObject, tmp: 0, directory:'', base:'', first:0, last:0, digits:3, wavelength:0.0, materialSet:0, material: PTR_NEW(), peaksSet:0, nhkl:0, fitoffset:0, offset: 0., fitcenter:0 , outputP:0 ,usepeak: PTR_NEW(), h:PTR_NEW(), k:PTR_NEW(), l:PTR_NEW(), fitstrainsset: PTR_NEW(), fitstrains: PTR_NEW(), filelistset: 0, filelist: PTR_NEW(), fileindex: PTR_NEW(), expdata: PTR_NEW(), expdataset: PTR_NEW()}
 END
 
 ; ************************************************************** Init ************************
@@ -121,6 +121,7 @@ end
 function experimentObject::getOffset
 return, self.offset
 end
+
 ; setFitCenter
 ;   - 1 to fit offsets, 0 otherwise
 pro experimentObject::setFitCenter, fit
@@ -134,6 +135,20 @@ function experimentObject::getFitCenter
 return, self.fitcenter
 end
 
+; ********************************************* Lattice strains output options *******************
+; added 16/01/2015 NH. 
+; switches on/off pressure output along with lattice strains
+; outputP = if 0 do not output pressure
+pro experimentObject::setOutputP, outpP
+self.outputP = outpP
+self-> resetFit
+end
+
+; gets the option status 
+;   if 0 do not output pressure
+function experimentObject::getOutputP
+return, self.outputP
+end
 
 ; *************************************************** Wavelength functions ***********************
 
@@ -759,6 +774,16 @@ endfor
 return, txt + '\n'
 end
 
+function experimentObject::summaryQnoP, step
+if (self.materialSet eq 0) then return, "Not set\n"
+txt = (*self.filelist)[step] + '\n'
+values = self->getPeakList(/used)
+for i=0, n_elements(values)-1 do begin
+	txt += '   Q(' + values[i] + ') = ' + fltformatA(self->latticeStrainQ(step, i, /used)) + ' (+/-) ' + fltformatA(self->latticeStrainErrQ(step, i, /used)) + '\n'
+endfor
+return, txt + '\n'
+end
+
 function experimentObject::summaryBeamCenter, step
 if (self.materialSet eq 0) then return, "Not set\n"
 txt = (*self.filelist)[step] + '\n'
@@ -1008,6 +1033,16 @@ endfor
 return, txt
 end
 
+function experimentObject::summaryQCSVnoP, step
+if (self.materialSet eq 0) then return, "Not set\n"
+txt = STRING((*self.fileindex)[step])
+values = self->getPeakList(/used)
+for i=0, n_elements(values)-1 do begin
+	txt += STRING(9B) + fltformatA(self->latticeStrainQ(step, i, /used))  + STRING(9B) + fltformatA(self->latticeStrainErrQ(step, i, /used))
+endfor
+return, txt
+end
+
 function experimentObject::summaryQCSVAll, progressbar
 if (self.materialSet eq 0) then return, "Not set\n"
 values = self->getPeakList(/used)
@@ -1017,6 +1052,21 @@ txt += "\n"
 n = self->getNFitFiles()
 for step=0,n-1 do begin
 	txt += self->summaryQCSV(step) + '\n'
+	percent = 100.*step/n
+	progressBar->Update, percent
+endfor
+return, txt
+end
+
+function experimentObject::summaryQCSVAllnoP, progressbar
+if (self.materialSet eq 0) then return, "Not set\n"
+values = self->getPeakList(/used)
+txt='#'
+for i=0, n_elements(values)-1 do txt += STRING(9B) + "Q(" + values[i] + ")" + STRING(9B) + "err"
+txt += "\n"
+n = self->getNFitFiles()
+for step=0,n-1 do begin
+	txt += self->summaryQCSVnoP(step) + '\n'
 	percent = 100.*step/n
 	progressBar->Update, percent
 endfor

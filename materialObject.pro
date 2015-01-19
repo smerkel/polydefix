@@ -396,44 +396,55 @@ if (latticestrain->getSet() eq 1) then begin
 		cell->setDetails, txt
   ; Orthorhombic
 	endif else if(self.symmetry eq 'ortho') then begin 
-    nuse = latticestrain->getnuse()
-    d = latticestrain->getd()
-    dd = latticestrain->getdd()
-    h = latticestrain->geth()
-    k = latticestrain->getk()
-    l = latticestrain->getl()
-    x = replicate({plane, h:0, k:0, l:0},nuse)
-    for i=0,nuse-1 do begin
-      x[i] = {plane, h[i], k[i], l[i]}
-    endfor
-    a = [5., 10., 6.]
-    fit = MPFITFUN('dhklortho', x, d, dd, a, perror=perror, YFIT=dfit, /quiet)
-    cell->setFit, [fit[0], perror[0], fit[1], perror[1], fit[2], perror[2]]
-    txt = "\thkl    dm       dc      diff\n"
-    for i=0,nuse-1 do begin
-      txt += "\t" + STRTRIM(STRING(h[i],/PRINT),2)+ STRTRIM(STRING(k[i],/PRINT),2)+ STRTRIM(STRING(l[i],/PRINT),2) + ": " + fltformatA(d[i]) + " (+/-) " + fltformatA(dd[i]) + "     " + fltformatA(dfit[i]) + "    " + fltformatA(d[i]-dfit[i]) + "\n" 
-    endfor
-    cell->setDetails, txt
-  ; Monoclinic
-  endif else if(self.symmetry eq 'mono') then begin 
-    nuse = latticestrain->getnuse()
-    d = latticestrain->getd()
-    dd = latticestrain->getdd()
-    h = latticestrain->geth()
-    k = latticestrain->getk()
-    l = latticestrain->getl()
-    x = replicate({plane, h:0, k:0, l:0},nuse)
-    for i=0,nuse-1 do begin
-      x[i] = {plane, h[i], k[i], l[i]}
-    endfor
-    a = [1., 1., 1., 1.75]
-    fit = MPFITFUN('dhklmono', x, d, dd, a, perror=perror, YFIT=dfit, /quiet)
-    cell->setFit, [fit[0], perror[0], fit[1], perror[1], fit[2], perror[2], fit[3], perror[3]]
-    txt = "\thkl    dm       dc      diff\n"
-    for i=0,nuse-1 do begin
-      txt += "\t" + STRTRIM(STRING(h[i],/PRINT),2)+ STRTRIM(STRING(k[i],/PRINT),2)+ STRTRIM(STRING(l[i],/PRINT),2) + ": " + fltformatA(d[i]) + " (+/-) " + fltformatA(dd[i]) + "     " + fltformatA(dfit[i]) + "    " + fltformatA(d[i]-dfit[i]) + "\n" 
-    endfor
-    cell->setDetails, txt
+		nuse = latticestrain->getnuse()
+    
+		if (nuse ge 3) then begin
+		d = latticestrain->getd()
+		dd = latticestrain->getdd()
+		h = latticestrain->geth()
+		k = latticestrain->getk()
+		l = latticestrain->getl()
+		x = replicate({plane, h:0, k:0, l:0},nuse)
+		for i=0,nuse-1 do begin
+			x[i] = {plane, h[i], k[i], l[i]}
+		endfor
+		a = [5., 10., 6.]
+		fit = MPFITFUN('dhklortho', x, d, dd, a, perror=perror, YFIT=dfit, /quiet)
+		cell->setFit, [fit[0], perror[0], fit[1], perror[1], fit[2], perror[2]]
+		txt = "\thkl    dm       dc      diff\n"
+		for i=0,nuse-1 do begin
+			txt += "\t" + STRTRIM(STRING(h[i],/PRINT),2)+ STRTRIM(STRING(k[i],/PRINT),2)+ STRTRIM(STRING(l[i],/PRINT),2) + ": " + fltformatA(d[i]) + " (+/-) " + fltformatA(dd[i]) + "     " + fltformatA(dfit[i]) + "    " + fltformatA(d[i]-dfit[i]) + "\n" 
+		endfor
+		endif else begin 
+			txt = 'not enough planes to refine unit cell!' 
+		endelse
+		cell->setDetails, txt
+
+    ; Monoclinic
+	endif else if(self.symmetry eq 'mono') then begin 
+		nuse = latticestrain->getnuse()
+		
+		if (nuse ge 4) then begin
+		d = latticestrain->getd()
+		dd = latticestrain->getdd()
+		h = latticestrain->geth()
+		k = latticestrain->getk()
+		l = latticestrain->getl()
+		x = replicate({plane, h:0, k:0, l:0},nuse)
+		for i=0,nuse-1 do begin
+			x[i] = {plane, h[i], k[i], l[i]}
+		endfor
+		a = [1., 1., 1., 1.75]
+		fit = MPFITFUN('dhklmono', x, d, dd, a, perror=perror, YFIT=dfit, /quiet)
+		cell->setFit, [fit[0], perror[0], fit[1], perror[1], fit[2], perror[2], fit[3], perror[3]]
+		txt = "\thkl    dm       dc      diff\n"
+		for i=0,nuse-1 do begin
+			txt += "\t" + STRTRIM(STRING(h[i],/PRINT),2)+ STRTRIM(STRING(k[i],/PRINT),2)+ STRTRIM(STRING(l[i],/PRINT),2) + ": " + fltformatA(d[i]) + " (+/-) " + fltformatA(dd[i]) + "     " + fltformatA(dfit[i]) + "    " + fltformatA(d[i]-dfit[i]) + "\n" 
+		endfor
+		endif else begin 
+			txt = 'not enough planes to refine unit cell!' 
+		endelse
+		cell->setDetails, txt
   ; cubic
   endif else if (self.symmetry eq 'cubic') then begin 
 		nuse = latticestrain->getnuse()
