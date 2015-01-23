@@ -82,7 +82,7 @@ CASE ev.id OF
 		'DONE': WIDGET_CONTROL, stash.input, /DESTROY
 		else:
 		ENDCASE
-	endcase
+	end;case
 endcase
 end
 

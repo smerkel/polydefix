@@ -55,7 +55,10 @@
 .COMPILE 'showprogress.pro'
 .COMPILE 'testLatticeStrainsWindow.pro'
 .COMPILE 'unitCellObject.pro'
+.COMPILE 'plotPeakWidths.pro
 .COMPILE 'diffIntensityWindow2.pro'
+.COMPILE 'diffFWHMWindow2.pro'
+.COMPILE 'diffFWHMWindow.pro'
 .COMPILE 'polydefix.pro'
 
 ; Resolve all routines

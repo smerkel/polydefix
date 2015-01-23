@@ -119,7 +119,7 @@ CASE ev.id OF
 		'ASCII': exportIntVsImageCSV, stash.input, sets, peaks
 		else:
 		ENDCASE
-	endcase
+	end;case
 endcase
 end
 

@@ -121,7 +121,8 @@ CASE ev.id OF
 		'ASCII': exportPeakWidthsVsImageCSV, stash.input, sets, peaks
 		else:
 		ENDCASE
-	endcase
+	end;case
+	else:
 endcase
 end
 
