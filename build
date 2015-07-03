@@ -26,6 +26,7 @@
 ; Compile project files
 .COMPILE 'mpfit.pro'
 .COMPILE 'mpfitfun.pro'
+.COMPILE 'changesWindow.pro'             
 .COMPILE 'func.gui.pro'
 .COMPILE 'func.pro'
 .COMPILE 'beamCenterWindow.pro'
