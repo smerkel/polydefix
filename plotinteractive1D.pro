@@ -306,6 +306,8 @@ xmin = min(xdata)
 xmax = max(xdata)
 ymin = min(ydata,/NAN)
 ymax = max(ydata,/NAN)
+; print, ymin, ymax
+; print, ydata
 state = {xdata: xdata, ydata:ydata, ncolumns: ncolumns, tlb: tlb, w_id:w_id, draw:draw, status:status, xlabel:xlabel, ylabel:ylabel, title: title, xmin:xmin, xmax:xmax, ymin:ymin, ymax:ymax, sc_xmin:0.0, sc_xmax:0.0, sc_ymin:0.0, sc_ymax:0.0, scaling:0, plotlegend: plotlegend, legend: legend}
 ; create a pointer to the state structure and put that pointer
 ; into the user value of the top-level base

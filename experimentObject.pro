@@ -844,6 +844,32 @@ for peakindex=0, n_elements(peaks)-1 do begin
 	;print, "hkl Q, dQ, g, dG, t, dt", hh, kk, ll, Q, dQ, g, dg, t[peakindex], dt[peakindex]
 	txt += '   t(' + peaks[peakindex] + ') = ' + fltformatA(t[peakindex]) + ' (+/-) ' +  fltformatA(dt[peakindex]) + '\n'
 endfor
+; Calculation of average stress, using a weighted mean with weighted estimator of variance
+; according to http://en.wikipedia.org/wiki/Mean_square_weighted_deviation
+meanWT = 0.; will hold weighted mean
+totWt = 0.;  will hold sum of weights
+stdWT = 0.;  will hold variance on weighted mean
+; Also calculating error on weighted mean using error propagation
+deltaWT = 0.;
+nuse = 0
+; For the weight, we use 1/uncertainty^2 for each plane
+for peakindex=0, n_elements(peaks)-1 do begin 
+  if (dt[peakindex] gt 0.0001) then begin
+    meanWT += t[peakindex]/(dt[peakindex]*dt[peakindex])
+    totWt += 1./(dt[peakindex]*dt[peakindex])
+    nuse += 1
+  endif
+endfor
+meanWT = meanWT/totWt
+for peakindex=0, n_elements(peaks)-1 do begin
+  if (dt[peakindex] gt 0.0001) then begin
+    stdWT += (t[peakindex]-meanWT)^2/(dt[peakindex]*dt[peakindex])
+  endif
+endfor
+stdWT = stdWT/totWt
+deltaWT = sqrt(1./totWt)
+txt += '   Weighted mean, variance, uncertainty, probable error (u+v):\n'
+txt += '   <t> = '+ fltformatA(meanWT)+ fltformatA(stdWT) + fltformatA(deltaWT)+ fltformatA((stdWT+deltaWT)) + '\n'
 OBJ_DESTROY, cell
 return, txt + '\n'
 end
@@ -1101,6 +1127,8 @@ p = cell->getPressure()
 dp = cell->getErrPressure()
 txt = STRING((*self.fileindex)[step]) + STRING(9B) + fltformatA(p) + STRING(9B) + fltformatA(dp)
 values = self->getPeakList(/used)
+t = fltarr(n_elements(values))
+dt = fltarr(n_elements(values))
 for i=0, n_elements(values)-1 do begin
 	hh = self->getH(i, /used)
 	kk = self->getK(i, /used)
@@ -1109,10 +1137,35 @@ for i=0, n_elements(values)-1 do begin
 	dQ = self->latticeStrainErrQ(step, i, /used)
 	g = (*self.material)->getTwoG(hh, kk, ll, cell)
 	dg = (*self.material)->getErrTwoG(hh, kk, ll, cell)
-	t = 3.*Q*g
-	dt = sqrt( (3.*Q*dg)^2 + (3.*g*dQ)^2)
-	txt += STRING(9B) + fltformatA(t)  + STRING(9B) + fltformatA(dt)
+	t[i] = 3.*Q*g
+	dt[i] = sqrt( (3.*Q*dg)^2 + (3.*g*dQ)^2)
+	txt += STRING(9B) + fltformatA(t[i])  + STRING(9B) + fltformatA(dt[i])
 endfor
+; Calculation of average stress, using a weighted mean with weighted estimator of variance
+; according to http://en.wikipedia.org/wiki/Mean_square_weighted_deviation
+meanWT = 0.; will hold weighted mean
+totWt = 0.;  will hold sum of weights
+stdWT = 0.;  will hold variance on weighted mean
+; Also calculating error on weighted mean using error propagation
+deltaWT = 0.;
+nuse = 0
+; For the weight, we use 1/uncertainty^2 for each plane
+for peakindex=0, n_elements(values)-1 do begin 
+  if (dt[peakindex] gt 0.0001) then begin
+    meanWT += t[peakindex]/(dt[peakindex]*dt[peakindex])
+    totWt += 1./(dt[peakindex]*dt[peakindex])
+    nuse += 1
+  endif
+endfor
+meanWT = meanWT/totWt
+for peakindex=0, n_elements(values)-1 do begin
+  if (dt[peakindex] gt 0.0001) then begin
+    stdWT += (t[peakindex]-meanWT)^2/(dt[peakindex]*dt[peakindex])
+  endif
+endfor
+stdWT = stdWT/totWt
+deltaWT = sqrt(1./totWt)
+txt += STRING(9B) + fltformatA(meanWT) +  STRING(9B) + fltformatA(stdWT) +  STRING(9B) + fltformatA(deltaWT) +  STRING(9B) + fltformatA((stdWT+deltaWT))
 OBJ_DESTROY, cell
 return, txt
 end
@@ -1122,6 +1175,7 @@ if (self.materialSet eq 0) then return, "Not set\n"
 values = self->getPeakList(/used)
 txt = "#" + STRING(9B) + "P" + STRING(9B) + "dP"
 for i=0, n_elements(values)-1 do txt += STRING(9B) + "t(" + values[i] + ")" + STRING(9B) + "err"
+txt += STRING(9B) + "<t>" + STRING(9B) + "stddev<t>" + STRING(9B) + "error<t>" + STRING(9B) + "error+stddev"
 txt += "\n"
 n = self->getNFitFiles()
 for step=0,n-1 do begin

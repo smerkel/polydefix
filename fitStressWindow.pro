@@ -45,7 +45,9 @@ progressBar->Start
 for i=0,n-1 do begin
 	for k=0, nUse-1 do begin
 		xx= experiment->refineTHKL(i, use[k], /used)
-		if ((abs(xx) eq !VALUES.F_INFINITY) or (fix(xx*1000000000) eq 0)) then t[k,i]=!VALUES.F_NAN else t[k,i]=xx
+		; print, xx
+		if ((abs(xx) eq !VALUES.F_INFINITY) or (fix(xx*100000) eq 0)) then t[k,i]=!VALUES.F_NAN else t[k,i]=xx
+		; print, t[k,i], abs(xx), fix(xx*10000000)
 	endfor
 	percent = 100.*i/n
 	progressBar->Update, percent
