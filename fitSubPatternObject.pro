@@ -133,7 +133,7 @@ function FitSubPatternObject::readFromascii, lun
 	;print, 'Npeaks = ' + STRING(self.nPeaks, /PRINT)
 	;print, 'Ndelta = ' + STRING(self.ndelta, /PRINT)
 	self.deltarange=PTR_NEW(fltarr(self.ndelta))
-	for i=0, self.ndelta-1 do (*self.deltarange)(i) = float(readascii(lun,  com='#'))
+	for i=0, self.ndelta-1 do (*self.deltarange)(i) = (float(readascii(lun,  com='#')) MOD 360.) ; We fold all angles to a 0-360 range otherwise plotting functions do not work
 	; Setting up arrays
 	self.twotheta=PTR_NEW(fltarr(self.npeaks,self.ndelta))
 	self.intensity=PTR_NEW(fltarr(self.npeaks,self.ndelta))
