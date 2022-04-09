@@ -132,8 +132,8 @@ function FitSubPatternObject::readFromascii, lun
 	self.ndelta = fix(readascii(lun,  com='#'))
 	;print, 'Npeaks = ' + STRING(self.nPeaks, /PRINT)
 	;print, 'Ndelta = ' + STRING(self.ndelta, /PRINT)
-	self.deltarange=PTR_NEW(intarr(self.ndelta))
-	for i=0, self.ndelta-1 do (*self.deltarange)(i) = fix(readascii(lun,  com='#'))
+	self.deltarange=PTR_NEW(fltarr(self.ndelta))
+	for i=0, self.ndelta-1 do (*self.deltarange)(i) = float(readascii(lun,  com='#'))
 	; Setting up arrays
 	self.twotheta=PTR_NEW(fltarr(self.npeaks,self.ndelta))
 	self.intensity=PTR_NEW(fltarr(self.npeaks,self.ndelta))
