@@ -20,6 +20,7 @@ clf = STRING([10B]) ; line feed
 text = "Polydefix" + clf
 text += "Compiled July 3nd 2015" + clf + clf
 text += "Recent changes" + clf
+text += "- April, 2022: azimuth angles were still treated as integers, converted them to floats and forced them to the [0;360°] range to avoid plotting issues." + clf
 text += "- July 3, 2015: added calculation of average stress, standard deviation, and statistical error on average stress" + clf
 text += "- July 2, 2015: added reference to multifit/polydefix publication in the about window" + clf
 text += "- July 2, 2015: open the about window at startup" + clf
